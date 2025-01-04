@@ -1,4 +1,6 @@
-## 43-Easy Exclude
+## 43-Exclude
+
+> View on GitHub: https://tsch.js.org/43
 
 ### 문제
 

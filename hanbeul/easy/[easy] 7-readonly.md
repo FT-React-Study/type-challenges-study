@@ -1,5 +1,7 @@
 ## 7-Readonly
 
+> View on GitHub: https://tsch.js.org/7
+
 ### 문제
 
 `T`에서 모든 프로퍼티를 읽기 전용으로 만드는 내장 제네릭 `Readonly<T>`을 사용하지 않고 구현하세요.

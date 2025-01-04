@@ -1,5 +1,7 @@
 ## 18-Length of Tuple
 
+> View on GitHub: https://tsch.js.org/18
+
 ### 문제
 
 배열(튜플)을 받아 길이를 반환하는 제네릭 Length<T>를 구현하세요.
