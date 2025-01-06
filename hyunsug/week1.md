@@ -1,6 +1,6 @@
 # TS Types - Week 1
 
-## Easy-4-Pick
+## [Easy-4-Pick](./easy-4-pick.ts)
 
 - **in** - Mapped Type 안에서 이용될 시, 객체의 키를 순회하며 새로운 타입을 정의하기 위해 이용된다.
   - [MappedType](https://www.typescriptlang.org/ko/docs/handbook/2/mapped-types.html)
@@ -11,5 +11,15 @@
 ```ts
 type MyPick<T, K extends keyof T> = {
   [Key in K]: T[Key];
+};
+```
+
+## [Easy-7-Readonly](./easy-7-readonly.ts)
+
+- **readonly** - 객체의 속성이나 배열 요소를 읽기 전용으로 지정, 적용된 속성은 초기화 이후 변경될 수 없다. 인터페이스의 각 속성에도 적용할 수 있다.
+
+```ts
+type MyReadonly<T> = {
+  readonly [K in keyof T]: T[K];
 };
 ```

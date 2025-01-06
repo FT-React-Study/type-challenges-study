@@ -1,3 +1,7 @@
+type MyReadonly<T> = {
+  readonly [K in keyof T]: T[K];
+};
+
 // Original Question
 interface Todo {
   title: string;
