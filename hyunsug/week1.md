@@ -74,3 +74,37 @@ type Length<T extends any[]> = T["length"];
 type T는 Array의 부분집합이므로, Array객체의 "length" 속성을 사용할 수 있음
 단, 이 경우 T에 해당하는 튜플은 길이가 정해져 있기 때문에 T["length"]는 number 타입을 갖는 정수 리터럴 타입이 된다.
 하지만, `type X = string[]`과 같이 단순한 배열인 경우 `type K = T["length"]`는 number르 나타난다.
+
+## [Easy-43-Easy-Exclude](./easy-43-easy-exclude.ts)
+
+`Exclude`를 구현하는 문항, Exclude는 UnionType에서 제외할 것을 제외한 나머지를 타입으로 리턴하는 역할을 한다.
+[Exclude<UnionType, ExcludedMembers>](https://www.typescriptlang.org/docs/handbook/utility-types.html#excludeuniontype-excludedmembers)
+
+```ts
+type MyExclude<T, U> = T extends U ? never : T;
+```
+
+타입스크립트 타입 적용에 **조건부 타입의 분배 법칙**이 적용되어 유니언 T의 각 항이 개별적으로 평가된다.
+
+```ts
+type T = "a" | "b" | "c";
+
+type Result = MyExclude<T, "a">;
+
+// 이는 다음과 같이 해석, 평가된다.
+type Result =
+  | ("a" extends "a" ? never : "a")
+  | ("b" extends "a" ? never : "b")
+  | ("c" extends "a" ? never : "c");
+
+// 그리고 never가 아닌 타입들의 유니언타입으로 형성된다.
+```
+
+never가 유니언에서 제거되는 이유는 "no value"를 명시하는 타입으로, 타입스크립트에 의해 축약/제거되기 때문이다.
+[참고자료](https://www.typescripttutorial.net/typescript-tutorial/typescript-never-type/)
+
+`null`과 다른 점이라면, null은 값에 null을 가지고 있는 것이고 `never`는 정말로 값이 없는 것, 집합에서의 공집합을 의미하기 떄문이라 한다.
+
+추가로 살펴볼 것: 집합론과 함께 타입스크립트의 타입의 이해
+[자료 1](https://thoughtspile.github.io/2023/01/23/typescript-sets/)
+[자료 2](https://ivov.dev/notes/typescript-and-set-theory)
