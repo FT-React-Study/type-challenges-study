@@ -23,3 +23,16 @@ type MyReadonly<T> = {
   readonly [K in keyof T]: T[K];
 };
 ```
+
+## [Easy-11-Tuple-to-Object](./easy-11-tuple-to-object.ts)
+
+- **T[number]** - 배열 T의 각 요소의 타입을 지정한다.
+
+```ts
+type TupleToObject<T extends readonly string[]> = {
+  [K in T[number]]: K;
+};
+```
+
+`readonly any[]`를 생각하고 해결해보려 했으나, object의 key는 string | number | symbol이어야 했다.
+또한, 주어진 문제 자체는 `readonly string[]`타입이었기에 easy인 해당 문제는 그것을 기반으로 해결하였다.
