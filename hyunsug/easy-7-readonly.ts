@@ -15,5 +15,3 @@ const todo: MyReadonly<Todo> = {
 
 todo.title = "Hello"; // Error: cannot reassign a readonly property
 todo.description = "barFoo"; // Error: cannot reassign a readonly property
-
-export {};
