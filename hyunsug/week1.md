@@ -1,5 +1,11 @@
 # TS Types - Week 1
 
+## [WarmUp-Hello-World]
+
+```ts
+type HelloWorld = string;
+```
+
 ## [Easy-4-Pick](./easy-4-pick.ts)
 
 - **in** - Mapped Type 안에서 이용될 시, 객체의 키를 순회하며 새로운 타입을 정의하기 위해 이용된다.
