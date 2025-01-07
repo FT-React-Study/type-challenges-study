@@ -36,3 +36,31 @@ type TupleToObject<T extends readonly string[]> = {
 
 `readonly any[]`를 생각하고 해결해보려 했으나, object의 key는 string | number | symbol이어야 했다.
 또한, 주어진 문제 자체는 `readonly string[]`타입이었기에 easy인 해당 문제는 그것을 기반으로 해결하였다.
+
+## [Easy-14-First-of-Array](./easy-14-first-of-array.ts)
+
+- 접근 첫번째
+
+T는 배열이므로 첫번째 원소를 return: 빈 배열에 대해 적합하지 않음 (타입에러 발생생)
+
+```ts
+type First<T extends any[]> = T[0];
+```
+
+- 접근 두번째
+
+T가 빈 배열이라면 원소 타입을 리턴할 수 없으니 "빈 배열 타입"인 `[]`와 비교한다.
+
+```ts
+type First<T extends any[]> = T extends [] ? never : T[0];
+```
+
+- 추가적인 방식
+
+**`infer`**: Conditional과 함께 이용되어야만 하며, 타입스크립트에 의한 타입 추론과 함께 이용한다.
+
+```ts
+type First<T extends any[]> = T extends [infer A, ...infer rest] ? A : never;
+```
+
+이 방식은 Array의 구조분해할당을 이용하는 방식으로 첫번째 원소의 타입을 A로 추론하고 존재한다면 A를, 빈 배열이어서 존재하지 않는다면 `never`를 가지게 하는 방식이다.
