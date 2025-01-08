@@ -74,12 +74,20 @@ type First<T extends any[]> = T extends [infer A, ...infer rest] ? A : never;
 ## [Easy-18-Easy-Tuple-Length](./easy-18-easy-tuple-length.ts)
 
 ```ts
+// 오류
 type Length<T extends any[]> = T["length"];
+
+// 맞는 답
+type Length<T extends readonly any[]> = T["length"];
 ```
 
 type T는 Array의 부분집합이므로, Array객체의 "length" 속성을 사용할 수 있음
-단, 이 경우 T에 해당하는 튜플은 길이가 정해져 있기 때문에 T["length"]는 number 타입을 갖는 정수 리터럴 타입이 된다.
+단, 이 경우 T에 해당하는 튜플은 길이가 정해져 있기 때문에 T["length"]는 number 타입을 갖는 정수 리터럴 타입이 된다.  
 하지만, `type X = string[]`과 같이 단순한 배열인 경우 `type K = T["length"]`는 number르 나타난다.
+
+> 스터디 후 추가,
+> `any[]`를 사용하게 되면 해당 Array는 "Array"가 된다.
+> `readonly any[]`와 같이 제한된, 명시적인 "튜플"이어야 이것이 타입이 `number`로 나타나지 않는다.
 
 ## [Easy-43-Easy-Exclude](./easy-43-easy-exclude.ts)
 

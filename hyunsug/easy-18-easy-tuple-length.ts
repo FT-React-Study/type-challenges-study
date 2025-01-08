@@ -1,4 +1,4 @@
-type Length<T extends any[]> = T["length"];
+type Length<T extends readonly any[]> = T["length"];
 
 // Original Question
 type tesla = ["tesla", "model 3", "model X", "model Y"];
