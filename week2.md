@@ -290,3 +290,212 @@ type If<C extends boolean, T, F> = C extends true ? T : F
 유니온 타입의 뒤쪽에 extends가 입력된 경우 유니온 타입의 개별 타입들이 하나씩 뒤의 타입에 extends 적용되는 방식으로 동작한다.
 
 `boolean`은 true와 false의 유니온 타입이기 때문에 제네릭의 두번째 값과 세번째 값의 유니온 타입으로 반환하는 것이다.
+
+
+
+## Concat
+
+```ts
+type Concat<T, U> = any
+
+/* _____________ 테스트 케이스 _____________ */
+import type { Equal, Expect } from '@type-challenges/utils'
+
+const tuple = [1] as const
+
+type cases = [
+  Expect<Equal<Concat<[], []>, []>>,
+  Expect<Equal<Concat<[], [1]>, [1]>>,
+  Expect<Equal<Concat<typeof tuple, typeof tuple>, [1, 1]>>,
+  Expect<Equal<Concat<[1, 2], [3, 4]>, [1, 2, 3, 4]>>,
+  Expect<Equal<Concat<['1', 2, '3'], [false, boolean, '4']>, ['1', 2, '3', false, boolean, '4']>>,
+]
+
+// @ts-expect-error
+type error = Concat<null, undefined>
+```
+
+
+
+### 문제 분석
+
+두가지 배열을 합친 배열을 반환하는 것으로 보인다.
+
+킥은 [1] as const 에서 추론한 타입을 합쳐서 [1, 1]로 만들어야 한다는 점이다
+
+
+
+### 첫번째 접근
+
+처음에는 배열을 유니온 타입으로 바꿔주는 `T[number]`가 떠올랐다.
+
+T와 U는 
+
+```ts
+type Concat<T extends unknown[], U extends unknown[]> = T[number] | U[number];
+```
+
+두 유니온 타입을 합치는건 쉬웠지만 유니온 타입을 튜플로 바꾸는건 복잡해서 잘못된 방향이라는 것을 느꼈다
+
+
+
+### 두번째 접근
+
+찾아보니 익숙한 방식이었다.
+
+배열속에 스프레드 연산자를 붙인 두개의 배열을 넣어주는 것이다.
+
+```ts
+type Concat<T extends unknown[], U extends unknown[]> = [...T, ...U]
+```
+
+
+
+#### 스프레드 연산자- 1
+
+타입에서 스프레드 연산자는 객체 타입에서는 사용할 수 없다는 점에서 자바스크립트의 스프레드 연산자와 다르지만,
+
+배열과 튜플 형식에서는 같은 방식으로 동작한다.
+
+
+
+### 세번째 접근
+
+이 경우에는 세번째 케이스가 오류가 났다
+
+세번째 케이스는 [1] as const로
+
+[1]이라는 배열을 리터럴 타입으로 고정한 것이다.
+
+
+
+앞서 언급했던 부분이기도 한데 as const는 리터럴 값으로 만들면서 동시의 readonly 속성 또한 가지게 한다
+
+```ts
+type Concat<T extends readonly unknown[], U extends readonly unknown[]> = [...T, ...U]
+```
+
+
+
+#### mutable한 리터럴 타입
+
+이렇게 답을 구하고 나니 오히려 혼란스러운 부분이 있었다
+
+애초에 [1,2] 타입과 [3, 4] 타입이라는 리터럴 타입을 합치는 동작일때는 
+
+T와 U를 readonly타입으로 제한하지 않았음에도 오류가 나지 않았다는 점이다.
+
+
+
+`as const`로 리터럴 타입 선언할때도 이해하기를 리터럴 타입은 readonly여야 하기 때문에 readonly도 자동으로 붙는다
+
+라고 이해했었다.
+
+
+
+하지만 이건 잘못된 이해였다.
+
+리터럴 타입도 변경 가능한 - mutable한 타입이 가능하다.
+
+
+
+원시 타입이 아닌 경우 리터럴 타입도 mutable할 수 있다.
+
+
+
+#### readonly
+
+이전에 원시타입에 readonly를 못붙히는 것데 대해서 이야기가 나왔었는데, 그 이유를 이번 기회로 학습했다
+
+원시타입은 기본적으로 불변하기 때문에 readonly속성을 주지 않아도 readonly이다.
+
+
+
+그런데 배열, 객체, 클래스의 속성과 같은 참조타입은 기본이 mutable이다
+
+mutable하기 때문에 오히려 readonly를 붙일 수 있는 것이다.
+
+```ts
+const a = 1 as const
+type Concat<T extends number> = T
+
+Expect<Equal<Concat<typeof a>, 1>>,
+
+```
+
+차이를 알기 위해 똑같은 방식의 위의 예를 만들어 봤는데 이경우에는 그냥 number여도 오류가 나지 않는다
+
+어차피 불변성을 가지고 있기 때문이다.
+
+
+
+#### mutable한 리터럴 타입이 unknown[]에 할당 가능
+
+그래서 다시 왜 그냥 mutable한 배열 타입이 unknown[]이라는 배열 타입에 할당가능하고 readonly인 경우 오류가 뜨는지가 관건이다. 
+
+처음에는 리터럴 타입이여서 그런거라 생각했지만, mutable한 경우에는 할당이 되기 때문에 그건 아니다.
+
+unknown[], number[]와 같은 배열 타입은 정확히는 '길이가 고정되지 않은 배열'을 의미한다. 그리고 그냥 [1,2]와 같은 배열 타입은 mutable하고 즉 길이가 바뀔 수 있기 때문에 unknown[]에 할당 가능한(extends) 것이다
+
+반대로 readonly [1,2]와 같은 불변한 리터럴 타입은 길이가 고정되어 있기 때문에 unknown[]에 할당이 되지 않는다
+
+
+
+이부분은 18-length of tuple에서도 적용된 개념이었는데 이때는 정확히 이해하지 못하고 이번에 파악한 부분이다.
+
+
+
+#### mutable한 리터럴 타입이 readonly unknown[]에 할당 가능
+
+그러면 또 궁금해지는게 mutable한 경우 길이가 고정되지 않는 타입인 unknown[]에 할당 가능하고
+
+readonly는 readonly unknown[]에 할당 가능한데
+
+mutable한 리터럴 타입은 왜 readonly unknown[] 타입에 할당 가능한지이다. 
+
+이건 readonly unknown[]타입이 둘다 할당할 수 있는 타입이라는 의미인데 직관적으로 와닿지는 않았다.
+
+개념상 readonly가 더 좁은 개념인데 왜 두개를 다 포괄하는? 개념이 readonly일 수 있는건가 혼란스러웠다.
+
+
+
+이런 개념으로 그나마 이해할 수 있었다. 
+
+readonly 타입은 읽기 전용 타입인데 mutable타입은 쓰기도 가능하고 읽기도 가능하다
+
+즉 읽기 가능하기 때문에 읽기 가능한 타입이라는 readonly 배열 타입에도 할당이 되는 것이다.
+
+
+
+extends의 할당 가능하다는 개념을 기존처럼 단순히 왼쪽이 오른쪽에 포함된다 안될 듯 하다. extends는 여러 사례들을 보면서 좀 더 이해도를 높여야겠다.
+
+
+
+#### as const
+
+리터럴 타입에 대한 이해가 바뀌면서 as const에 대한 이해도 바뀌었다
+
+전에는 as const -> 리터럴 타입을 만들어주는 것 -> 리터럴 타입이니까 자연스럽게 readonly타입이 붙는것
+
+이었는데 잘못되었고 그냥 as const는 불변한 리터럴 타입을 만들어주는 것이다.
+
+```ts
+const list = [1, 2, 3] as const
+list[1] = 4
+```
+
+
+
+as const는 선언된 값의 타입을 리터럴 타입으로 만들어주는 것이기 때문에 불변해야지 타입 안정성이 보장된다.
+
+이는 타입 안정성을 위해 불변한 리터럴 타입이 필요하고 이를 만들기 위해 as const를 쓰는 것이기 때문
+
+애초에 리터럴 타입이 포인트가 아니라 타입을 불변하게 만들어주는것이 포인트였다.
+
+
+
+#### `readonly`타입이지만 배열에 더할 수 있는 이유
+
+불변타입인데 더해서 두가지 타입을 만들 수 있는건 스프레드 연산자는 기존의 참조값을 바꾸는 것이 아니라 복사한 값을 할당하는 것이기 때문이다.
+
+그러면서 mutable값으로 바뀌고 더할 수 있어진다.
