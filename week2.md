@@ -223,3 +223,70 @@ async function fetchData(): Promise<string> {
 type Result = Awaited<ReturnType<typeof fetchData>>; // string
 ```
 
+
+
+## IF
+
+조건 `C`, 참일 때 반환하는 타입 `T`, 거짓일 때 반환하는 타입 `F`를 받는 타입 `If`를 구현하세요. `C`는 `true` 또는 `false`이고, `T`와 `F`는 아무 타입입니다.
+
+예시:
+
+```ts
+type A = If<true, 'a', 'b'>  // expected to be 'a'
+type B = If<false, 'a', 'b'> // expected to be 'b'
+
+type If<C, T, F> =  any
+
+type cases = [
+  Expect<Equal<If<true, 'a', 'b'>, 'a'>>,
+  Expect<Equal<If<false, 'a', 2>, 2>>,
+  Expect<Equal<If<boolean, 'a', 2>, 'a' | 2>>,
+]
+
+// @ts-expect-error
+type error = If<null, 'a', 'b'>
+```
+
+### 문제 분석
+
+두개의 항 중에서 true면 제네릭의 두번째 인자를 false면 제네릭의 세번째 인자를 반환한다.
+
+이 내용까지만 봤을 떄는 간단한 식이 바로 떠오르지만, 세번째 케이스처럼 boolean인 경우에 두개의 유니온 타입을 반환해야 한다.
+
+
+
+### 첫번째 접근
+
+먼저 null이 들어갔을 때 error를 발생시켜야 하기 때문에 C의 타입을 한정시켜줘야 한다.
+
+```ts
+type If<C extends boolean, T, F> =  any
+```
+
+타입을 한정시켜주기 위해 extends를 쓰는것은 반복적으로 해왔던 것이라서 이제는 바로 적용할 수 있었다.
+
+
+
+그리고 마찬가지로 조건문으로 쓸 수 있다는 점으로
+
+```ts
+type If<C extends boolean, T, F> = C extends true ? T : F
+```
+
+를 구상할 수 있었다.
+
+
+
+첫번째 접근을 했을 때 3번째 케이스는 이후 해결하려고 했는데 위 답으로 해결이 됐다.
+
+
+
+뭔가 했더니 앞에 언급됐던 분배 법칙과 관련이 있었다.
+
+
+
+#### 분배 법칙
+
+유니온 타입의 뒤쪽에 extends가 입력된 경우 유니온 타입의 개별 타입들이 하나씩 뒤의 타입에 extends 적용되는 방식으로 동작한다.
+
+`boolean`은 true와 false의 유니온 타입이기 때문에 제네릭의 두번째 값과 세번째 값의 유니온 타입으로 반환하는 것이다.
