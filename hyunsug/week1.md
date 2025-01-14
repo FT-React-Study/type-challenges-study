@@ -6,7 +6,7 @@
 type HelloWorld = string;
 ```
 
-## [Easy-4-Pick](./easy-4-pick.ts)
+## [Easy-4-Pick](./easy/easy-4-pick.ts)
 
 - **in** - Mapped Type 안에서 이용될 시, 객체의 키를 순회하며 새로운 타입을 정의하기 위해 이용된다.
   - [MappedType](https://www.typescriptlang.org/ko/docs/handbook/2/mapped-types.html)
@@ -20,7 +20,7 @@ type MyPick<T, K extends keyof T> = {
 };
 ```
 
-## [Easy-7-Readonly](./easy-7-readonly.ts)
+## [Easy-7-Readonly](./easy/easy-7-readonly.ts)
 
 - **readonly** - 객체의 속성이나 배열 요소를 읽기 전용으로 지정, 적용된 속성은 초기화 이후 변경될 수 없다. 인터페이스의 각 속성에도 적용할 수 있다.
 
@@ -30,7 +30,7 @@ type MyReadonly<T> = {
 };
 ```
 
-## [Easy-11-Tuple-to-Object](./easy-11-tuple-to-object.ts)
+## [Easy-11-Tuple-to-Object](./easy/easy-11-tuple-to-object.ts)
 
 - **T[number]** - 배열 T의 각 요소의 타입을 지정한다.
 
@@ -43,7 +43,7 @@ type TupleToObject<T extends readonly string[]> = {
 `readonly any[]`를 생각하고 해결해보려 했으나, object의 key는 string | number | symbol이어야 했다.
 또한, 주어진 문제 자체는 `readonly string[]`타입이었기에 easy인 해당 문제는 그것을 기반으로 해결하였다.
 
-## [Easy-14-First-of-Array](./easy-14-first-of-array.ts)
+## [Easy-14-First-of-Array](./easy/easy-14-first-of-array.ts)
 
 - 접근 첫번째
 
@@ -71,7 +71,7 @@ type First<T extends any[]> = T extends [infer A, ...infer rest] ? A : never;
 
 이 방식은 Array의 구조분해할당을 이용하는 방식으로 첫번째 원소의 타입을 A로 추론하고 존재한다면 A를, 빈 배열이어서 존재하지 않는다면 `never`를 가지게 하는 방식이다.
 
-## [Easy-18-Easy-Tuple-Length](./easy-18-easy-tuple-length.ts)
+## [Easy-18-Easy-Tuple-Length](./easy/easy-18-easy-tuple-length.ts)
 
 ```ts
 // 오류
@@ -89,7 +89,7 @@ type T는 Array의 부분집합이므로, Array객체의 "length" 속성을 사�
 > `any[]`를 사용하게 되면 해당 Array는 "Array"가 된다.
 > `readonly any[]`와 같이 제한된, 명시적인 "튜플"이어야 이것이 타입이 `number`로 나타나지 않는다.
 
-## [Easy-43-Easy-Exclude](./easy-43-easy-exclude.ts)
+## [Easy-43-Easy-Exclude](./easy/easy-43-easy-exclude.ts)
 
 `Exclude`를 구현하는 문항, Exclude는 UnionType에서 제외할 것을 제외한 나머지를 타입으로 리턴하는 역할을 한다.
 [Exclude<UnionType, ExcludedMembers>](https://www.typescriptlang.org/docs/handbook/utility-types.html#excludeuniontype-excludedmembers)
