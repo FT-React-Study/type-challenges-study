@@ -629,3 +629,42 @@ keyof는 키값, [number]는 값을 가져오는 것이기 때문이다
  `:` 오른쪽에 있는 타입 연산을 순회해서 T를 돌면서 반환할 수 있는 형태인 것이다.
 
 즉, 가장 흔히 쓰이는 `.map`이나 `for문/range`의 느낌이 나서 자주 쓸 것으로 보인다
+
+
+
+## 3057-Push
+
+`Array.push`의 제네릭 버전을 구현하세요.
+
+```ts
+type Result = Push<[1, 2], '3'> // [1, 2, '3']
+```
+
+```ts
+
+type Push<T, U> = any
+
+/* _____________ 테스트 케이스 _____________ */
+import type { Equal, Expect } from '@type-challenges/utils'
+
+type cases = [
+  Expect<Equal<Push<[], 1>, [1]>>,
+  Expect<Equal<Push<[1, 2], '3'>, [1, 2, '3']>>,
+  Expect<Equal<Push<['1', 2, '3'], boolean>, ['1', 2, '3', boolean]>>,
+```
+
+### 문제 분석
+
+T는 배열이고 그 배열에 U를 포함시키는 유틸리티 타입이다
+
+
+
+### 풀이
+
+```ts
+type Push<T extends unknown[], U> = [...T, U]
+```
+
+T는 배열로 extends 해주었고
+
+스프레드 연산자와 U가 포함된 배열을 만들어주었다.
