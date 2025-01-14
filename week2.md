@@ -499,3 +499,133 @@ as const는 선언된 값의 타입을 리터럴 타입으로 만들어주는 �
 불변타입인데 더해서 두가지 타입을 만들 수 있는건 스프레드 연산자는 기존의 참조값을 바꾸는 것이 아니라 복사한 값을 할당하는 것이기 때문이다.
 
 그러면서 mutable값으로 바뀌고 더할 수 있어진다.
+
+
+
+## 898 - Include
+
+JavaScript의 `Array.includes` 함수를 타입 시스템에서 구현하세요. 타입은 두 인수를 받고, `true` 또는 `false`를 반환해야 합니다.
+
+예시:
+
+```ts
+type isPillarMen = Includes<['Kars', 'Esidisi', 'Wamuu', 'Santana'], 'Dio'> // expected to be `false`
+```
+
+
+
+```ts
+
+type Includes<T extends readonly any[], U> = (T[number] extends U ? true : false) extends true[T['length']]
+
+/* _____________ 테스트 케이스 _____________ */
+import type { Equal, Expect } from '@type-challenges/utils'
+
+type cases = [
+  Expect<Equal<Includes<['Kars', 'Esidisi', 'Wamuu', 'Santana'], 'Kars'>, true>>,
+  Expect<Equal<Includes<['Kars', 'Esidisi', 'Wamuu', 'Santana'], 'Dio'>, false>>,
+  Expect<Equal<Includes<[1, 2, 3, 5, 6, 7], 7>, true>>,
+  Expect<Equal<Includes<[1, 2, 3, 5, 6, 7], 4>, false>>,
+  Expect<Equal<Includes<[1, 2, 3], 2>, true>>,
+  Expect<Equal<Includes<[1, 2, 3], 1>, true>>,
+  Expect<Equal<Includes<[{}], { a: 'A' }>, false>>,
+  Expect<Equal<Includes<[boolean, 2, 3, 5, 6, 7], false>, false>>,
+  Expect<Equal<Includes<[true, 2, 3, 5, 6, 7], boolean>, false>>,
+  Expect<Equal<Includes<[false, 2, 3, 5, 6, 7], false>, true>>,
+  Expect<Equal<Includes<[{ a: 'A' }], { readonly a: 'A' }>, false>>,
+  Expect<Equal<Includes<[{ readonly a: 'A' }], { a: 'A' }>, false>>,
+  Expect<Equal<Includes<[1], 1 | 2>, false>>,
+  Expect<Equal<Includes<[1 | 2], 1>, false>>,
+  Expect<Equal<Includes<[null], undefined>, false>>,
+  Expect<Equal<Includes<[undefined], null>, false>>,
+]
+```
+
+
+
+### 문제 분석
+
+T는 타입의 배열이며, 그 타입은 하나로 고정되어있지 않고 여러 타입이 섞여 있다.
+
+그리고 U에 T에 속한 경우 true를 아닌 경우 false를 반환한다
+
+
+
+### 첫번째 접근
+
+배열이 들어간 만큼 배열을 유니온 타입으로 바꾸어서 분배 법칙을 사용하는 아이디어까지는 떠올렸다
+
+
+
+```ts
+type Includes<T extends readonly any[], U> = true extends (T[number] extends U ? true : false) ? true : false
+
+```
+
+그래서 저렇게 비교한 boolean의 유니온 타입에 true가 하나만 있으면 true가 되게 하면 된다
+
+`T[number] extends U ? true : false)`
+
+이거로 하면 유니온 타입중에 U랑 같은게 있으면 true가 포함된 boolean의 유니온 타입이 되고
+
+`true extends {boolean의 유니온 타입}`으로 true가 있다면 true를 반환하도록 해봤다
+
+
+
+### 두번째 접근
+
+```ts
+type Includes<T extends readonly any[], U> = U extends T[number] ? true : false;
+```
+
+그냥 단순히 할당하는 경우는 안될거 같긴했는데 타입이 섞여 있어서 안된다
+
+
+
+### 정답
+
+찾아보니 infer와 스프레드 연산자, 재귀를 통해 푸는 방법이 있고
+
+객체화해서 가능 여부로 푸는 방법이 있는데, 두 경우 다 타입을 비교하는 타입을 하나 더 만들어야 한다.
+
+```ts
+type MyEqual<X, Y> = (<T>() => T extends X ? 1 : 2) extends 
+                  (<T>() => T extends Y ? 1 : 2) ? true : false;
+```
+
+Equal 타입은 이렇게 만들던데 이건 문제 나오면 그때가서 다시 봐야겠다.
+
+
+
+객체로 만들어서 푸는 방식이 생각했던 방향성이라 비슷해서 공부했다.
+
+```ts 
+type Includes<T extends readonly any[], U> = 
+    true extends { [K in keyof T]: MyEqual<T[K], U> }[number] ? true : false;
+```
+
+첫번째 방식이랑 비슷한데 첫번째 방식에서 분배 법칙으로 해도 다른값에 할당가능하기때문에 답이 안됐고
+
+Equal을 통해 같은 타입이라는 것을 True로 반환해야 하고 그 이후로는 유니온 타입으로 만들어서 true가 할당되는지(하나라도 true가 있는지 판단한다)
+
+
+
+#### keyof 배열, 객체[number]
+
+지금까지 객체에만 keyof를 쓰고 배열에만 [number]를 썼다
+
+keyof는 키값, [number]는 값을 가져오는 것이기 때문이다
+
+
+
+근데 반대로도 적용하는 예시는 익숙하지 않았다.
+
+개념 자체는 기본적인 개념이다.
+
+배열의 키값은 인덱스고, 객체의 값은 value값의 유니온 타입이다
+
+`{ [K in keyof T]: {인덱스(k)와 T를 이용할 수 있는 타입연산} }[number]`
+
+ `:` 오른쪽에 있는 타입 연산을 순회해서 T를 돌면서 반환할 수 있는 형태인 것이다.
+
+즉, 가장 흔히 쓰이는 `.map`이나 `for문/range`의 느낌이 나서 자주 쓸 것으로 보인다
