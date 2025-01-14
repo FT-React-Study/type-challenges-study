@@ -668,3 +668,33 @@ type Push<T extends unknown[], U> = [...T, U]
 T는 배열로 extends 해주었고
 
 스프레드 연산자와 U가 포함된 배열을 만들어주었다.
+
+
+
+## 3060-Unshift
+
+`Array.unshift`의 타입 버전을 구현하세요.
+
+예시:
+
+```ts
+type Result = Unshift<[1, 2], 0> // [0, 1, 2]
+```
+
+```ts
+type Unshift<T, U> = any
+```
+
+### 문제 분석
+
+T는 배열이고 U를 이번에는 앞에 넣어준다.
+
+
+
+### 풀이
+
+```ts
+type Unshift<T extends unknown[], U> = [U, ...T]
+```
+
+T는 배열로 unknown해주고 U와 T를 스프레드 연산자로 복사해준것을 합친 배열을 호출한다.
