@@ -151,6 +151,14 @@ type Push<T extends unknown[], U> = [...T, U];
 
 ## [Easy-3060-Easy-Unshift]
 
+```ts
+type Unshift<T extends unknown[], U> = [U, ...T];
+```
+
+- T: 배열 타입
+- U: 배열 타입의 요소 타입
+- spread operator를 이용하여 배열의 맨 앞에 U를 추가하는 타입
+
 ## [Easy-3312-Easy-Parameters]
 
 ```
