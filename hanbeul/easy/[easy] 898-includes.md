@@ -39,4 +39,37 @@ type Includes<T extends readonly any[], U> = T extends [
 - `T`는 함수 내부에서 사용할 수 있는 제네릭 타입 매개변수
 - 아무 변수명이나 가능하지만(`<A>`), 제네릭 타입 매개변수라는 것을 명시해야 함
 
+> `MyEqual`에 대한 이해
+
+- `MyEqual`은 두 타입이 같은지 확인하는 타입
+- `(<T>() => T extends X ? 1 : 2)`는 `T`가 `X`의 서브타입이면 `1`, 아니면 `2`를 반환하는 타입
+- `(<T>() => T extends Y ? 1 : 2)`는 `T`가 `Y`의 서브타입이면 `1`, 아니면 `2`를 반환하는 타입
+- Typescript는 함수 비교를 시행할 때, `구조적 동등성`을 사용하여 비교 (JavaScript에서는 함수 비교를 시행할 때, `참조적 동등성`을 사용하여 비교)
+- 구조적 동등성은 함수의 매개변수와 반환 타입의 구조만 비교하고, 함수 이름이나 함수 본문은 비교하지 않음
+- 따라서 `MyEqual`은 두 함수의 매개변수와 반환 타입이 같으면 `true`, 다르면 `false`를 반환하는 타입
+
+```ts
+type A = <T>() => T extends string ? 1 : 2;
+type B = <T>() => T extends string ? 1 : 2;
+
+type AreEqual = A extends B ? true : false;
+// A와 B의 함수 타입 구조가 동일하므로, A extends B는 true로 평가됨
+```
+
+```ts
+type A = <T>() => T extends string ? 1 : 2;
+type B = <T>() => T extends number ? 1 : 2;
+
+type AreEqual = A extends B ? true : false;
+// A와 B의 함수 타입 구조가 다르므로, A extends B는 false로 평가됨
+```
+
+```ts
+type A = <T>() => T extends string ? 1 : 2;
+type B = <T>() => T extends string ? 1 : 3;
+
+type AreEqual = A extends B ? true : false;
+// A와 B의 함수 타입 구조가 다르므로, A extends B는 false로 평가됨
+```
+
 ### Reference
