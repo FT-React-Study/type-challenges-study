@@ -1,6 +1,6 @@
 # TS Types - Week 2
 
-## [Easy-189-Awaited](./easy/easy-189-awaited.ts);
+## [Easy-189-Awaited](./easy/easy-189-awaited.ts)
 
 최종적으로 반환되는 타입을 추출하는 타입
 
@@ -21,7 +21,7 @@ type MyAwaited<T> = T extends null | undefined
 
 ### Promise 타입
 
-1. Promise Constructor
+#### `Promise Constructor`
 
 - 이는 Promise 생성자 함수의 타입
 - new, resolve, reject 메서드를 가지고 있는 객체를 정의하는 타입
@@ -32,7 +32,7 @@ const promise = new Promise<string>((resolve, reject) => {
 });
 ```
 
-2. Promise<T>
+#### `Promise<T>`
 
 - 이는 Promise 생성자의 제네릭 타입으로, 생성된 Promise 객체의 타입
 - then, catch, finally 메서드를 가지고 있는 객체를 정의;
@@ -77,7 +77,7 @@ type Concat<T extends any[], U extends any[]> = [...T, ...U];
 
 ## [Easy-898-Easy-Includes]
 
-1. 처음 풀이
+### 처음 풀이
 
 ```ts
 type Includes<T extends any[], U> = U extends T[number] ? true : false;
@@ -88,7 +88,7 @@ type Includes<T extends any[], U> = U extends T[number] ? true : false;
 - `T[number]` : T의 요소들의 타입
 - `U extends T[number]` : U가 T의 요소들의 타입 중 하나라면 true, 아니면 false
 
-2. 두번째 풀이
+### 두번째 풀이
 
 - 테스트 케이스 중 정답과 다른 케이스들이 있음
 
