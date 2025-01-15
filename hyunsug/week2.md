@@ -58,6 +58,14 @@ promise.then(onFulfilled, onRejected).catch(onRejected).finally(onFinally);
 
 ## [Easy-268-Easy-If]
 
+```ts
+type If<C extends boolean, T, F> = C extends true ? T : F;
+```
+
+- C: Condition
+- T: True 시 반환되는 타입
+- F: False 시 반환되는 타입
+
 ## [Easy-533-Easy-Concat]
 
 ## [Easy-898-Easy-Includes]
