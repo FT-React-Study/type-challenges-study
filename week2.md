@@ -698,3 +698,75 @@ type Unshift<T extends unknown[], U> = [U, ...T]
 ```
 
 T는 배열로 unknown해주고 U와 T를 스프레드 연산자로 복사해준것을 합친 배열을 호출한다.
+
+
+
+## 3312- Parameters
+
+내장 제네릭 `Parameters<T>`를 이를 사용하지 않고 구현하세요.
+
+예시:
+
+```ts
+const foo = (arg1: string, arg2: number): void => {}
+
+type FunctionParamsType = MyParameters<typeof foo> // [arg1: string, arg2: number]
+```
+
+```ts
+type MyParameters<T extends (...args: any[]) => any> = any
+
+
+/* _____________ 테스트 케이스 _____________ */
+import type { Equal, Expect } from '@type-challenges/utils'
+
+function foo(arg1: string, arg2: number): void {}
+function bar(arg1: boolean, arg2: { a: 'A' }): void {}
+function baz(): void {}
+
+type cases = [
+  Expect<Equal<MyParameters<typeof foo>, [string, number]>>,
+  Expect<Equal<MyParameters<typeof bar>, [boolean, { a: 'A' }]>>,
+  Expect<Equal<MyParameters<typeof baz>, []>>,
+]
+
+```
+
+### 문제 분석
+
+함수 타입의 파라미터들의 타입을 튜플 타입 형태로 반환하는 유틸리티 타입이다.
+
+
+
+### 접근
+
+파라미터에 들어갈 타입을 추론하는 것인만큼 infer가 쓰일거라 생각했다.
+
+하지만 여러개의 파라미터를 동시에 받는것과 그걸 배열로 반환하는 법이 감이 안왔다.
+
+
+
+### 풀이
+
+```ts
+type MyParameters<T extends (...args: any[]) => any> = T extends (...args: infer P) => any ? P : never 
+```
+
+제네릭에 이미 extends로 T의 형태가 한정되어 있어서 오히려 좀 헷갈렸다.
+
+infer를 다시 되새겨 보면 조건문 형식의 extends에서 들어가고 해당 extends가 할당가능할때 infer가 붙은 자리를 추론해서 true문의 위치에 변수로 뱉는다.
+
+제네릭에서 extends는 그 boolean결과를 조건문으로 이어가는 것이 아니라 false일때는 에러를 바로 뱉기 때문에 여기에 infer를 쓰지는 못한다.
+
+
+
+#### 파라미터의 타입
+
+타입스크립트에서 파라미터 리스트는 튜플 타입을 가지고 있다.
+
+```ts
+type a = (x: number, y: string, z: boolean) => void;
+// 파라미터 리스트 타입 [number, string, boolean]
+```
+
+그렇기 때문에 파라미터의 타입을 추론하면 타입의 튜플 타입을 반환하는 것이다.
