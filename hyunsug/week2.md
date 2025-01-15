@@ -138,6 +138,17 @@ type Includes<T extends any[], U> = T extends [infer F, ...infer R]
 
 ## [Easy-3057-Easy-Push]
 
+```ts
+type Push<T extends unknown[], U> = [...T, U];
+```
+
+- T: 배열 타입
+- U: 배열 타입의 요소 타입
+- spread operator를 이용하여 배열의 마지막에 U를 추가하는 타입
+
+- unknown의 사용: 실제 사용 시 unknown 타입은 모든 타입일 수 있기에 타입 추론, 검사 과정을 요구함
+  하지만 any 타입은 모든 타입을 포함하기에 타입 추론, 검사 과정을 요구하지 않아 런타임 에러 발생 가능
+
 ## [Easy-3060-Easy-Unshift]
 
 ## [Easy-3312-Easy-Parameters]
