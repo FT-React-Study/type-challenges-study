@@ -68,6 +68,13 @@ type If<C extends boolean, T, F> = C extends true ? T : F;
 
 ## [Easy-533-Easy-Concat]
 
+```ts
+type Concat<T extends any[], U extends any[]> = [...T, ...U];
+```
+
+- T, U: 각각 배열 타입
+- spread operator를 이용하여 배열을 합치는 타입
+
 ## [Easy-898-Easy-Includes]
 
 ## [Easy-3057-Easy-Push]
