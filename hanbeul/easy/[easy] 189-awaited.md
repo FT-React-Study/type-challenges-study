@@ -27,6 +27,30 @@ type MyAwaited<T> = T extends PromiseLike<infer U> ? MyAwaited<U> : T;
 - `PromiseLike`는 `then` 메서드만 지원, `catch`나 `finally` 메서드는 지원하지 않음
 - `{ then: (onfulfilled: (arg: number) => any) => any }`를 처리하기 위해 `Promise`가 아닌 `PromiseLike`를 사용 (Promise가 성립하려면 `catch`와 `finally`가 있어야 함)
 
+```ts
+interface Promise<T> {
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
+    onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
+  ): Promise<TResult1 | TResult2>;
+
+  catch<TResult = never>(
+    onrejected?: (reason: any) => TResult | PromiseLike<TResult>
+  ): Promise<T | TResult>;
+
+  finally(onfinally?: (() => void) | null): Promise<T>;
+}
+```
+
+```ts
+interface PromiseLike<T> {
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
+    onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
+  ): PromiseLike<TResult1 | TResult2>;
+}
+```
+
 > `infer`란 무엇인가?
 
 - `infer` 키워드는 조건부 타입에 사용되며, 조건식이 참으로 평가될 때 사용할 수 있는 타입을 추론하는 데 필요한 도구
