@@ -10,7 +10,7 @@
 
 ```ts
 type MyParameters<T extends (...args: any[]) => any> = T extends (
-  ...any: infer U
+  ...args: infer U
 ) => any
   ? U
   : never;
@@ -18,8 +18,11 @@ type MyParameters<T extends (...args: any[]) => any> = T extends (
 
 ### 설명
 
-- `T`가 함수 타입이라면, `infer`를 사용하여 함수의 매개변수 타입을 추출
-- `infer`를 사용하여 함수의 매개변수 타입을 추출하고, 그 타입을 반환
+- `T`가 `(...args: any[]) => any` 형태(함수 타입)인지 확인
+- 맞다면 `args` 부분(= 함수의 파라미터들)을 `infer U`라고 두어 '함수 매개변수들의 튜플 타입'을 추론
+- 추론한 타입 `U`를 반환
+- 함수가 아니라면 `never` 반환
+- `...args`는 아무 이름이어도 되고, TypeScript에서 그냥 ‘추론할 위치’가 `rest parameter`임을 표시하기 위한 placeholder
 
 ### 추가 질문
 

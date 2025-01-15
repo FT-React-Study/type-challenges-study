@@ -21,7 +21,7 @@
 /* _____________ Your Code Here _____________ */
 
 type MyParameters<T extends (...args: any[]) => any> = T extends (
-  ...any: infer U
+  ...args: infer U
 ) => any
   ? U
   : never;
