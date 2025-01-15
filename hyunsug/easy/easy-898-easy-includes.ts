@@ -10,6 +10,8 @@ type Includes<T extends any[], U> = T extends [infer F, ...infer R]
     : Includes<R, U>
   : false;
 
+// 객체를 생성하고 나열한 뒤 다시 배열로 만드는 방법
+
 // Original
 type isPillarMen = Includes<["Kars", "Esidisi", "Wamuu", "Santana"], "Dio">;
 

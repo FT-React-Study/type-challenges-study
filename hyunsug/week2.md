@@ -111,7 +111,7 @@ type E = Includes<[1 | 2], 1>;
 Union 관련, 객체 타입 비교, boolean 타입 비교에서 문제가 있는 것으로 나타남  
 정확한 타입의 비교가 필요하다는 것을 알 수 있음
 
-[참고 - TS PR](https://github.com/microsoft/TypeScript/issues/27024)
+[참고 - TS PR](https://github.com/microsoft/TypeScript/issues/27024)  
 [참고 - 블로그](https://kscodebase.tistory.com/643)
 
 ```ts
@@ -193,4 +193,4 @@ const func3: MyFn = (a: number, b: string) => {
 
 - return 타입은 위 규칙에 영향을 받지 않고 추출하는 P와 연관이 없기에 문제가 되지 않음
 
-[참고 - 타입스크립트의 공변셩, 반공변성](https://inpa.tistory.com/entry/TS-%F0%9F%93%98-%ED%83%80%EC%9E%85%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8-%EA%B3%B5%EB%B3%80%EC%84%B1-%EB%B0%98%EA%B3%B5%EB%B3%80%EC%84%B1-%F0%9F%92%A1-%ED%95%B5%EC%8B%AC-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0)
+[참고 - 타입스크립트의 공변성, 반공변성](https://inpa.tistory.com/entry/TS-%F0%9F%93%98-%ED%83%80%EC%9E%85%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8-%EA%B3%B5%EB%B3%80%EC%84%B1-%EB%B0%98%EA%B3%B5%EB%B3%80%EC%84%B1-%F0%9F%92%A1-%ED%95%B5%EC%8B%AC-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0)
