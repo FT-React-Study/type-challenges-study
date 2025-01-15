@@ -161,10 +161,36 @@ type Unshift<T extends unknown[], U> = [U, ...T];
 
 ## [Easy-3312-Easy-Parameters]
 
+```ts
+type MyParameters<T extends (...args: any[]) => unknown> = T extends (
+  ...args: infer P
+) => unknown
+  ? P
+  : never;
 ```
 
+- 첫번째 제너릭의 ...args의 타입에 unknown[]을 사용할 수 없는 이유
+  - 함수의 매개변수가 갖는 반공변성으로 인해 unknown[]으로 선언된 args는 unknown[]으로 구성된 매개변수 집합만이 타입 일치 조건을 만족하게됨
+
+```ts
+type MyFn = (...args: unknown[]) => unknown;
+
+// Valid example: 매개변수가 unknown 타입
+const func1: MyFn = (...args: unknown[]) => {
+  return args.length;
+};
+
+// Valid example: 매개변수가 unknown으로 더 일반적임
+const func2: MyFn = (...args: any[]) => {
+  return args[0];
+};
+
+// Invalid example: 특정 타입 매개변수를 요구
+const func3: MyFn = (a: number, b: string) => {
+  return a + b; // Error: 'T'는 unknown 매개변수만 허용
+};
 ```
 
-```
+- return 타입은 위 규칙에 영향을 받지 않고 추출하는 P와 연관이 없기에 문제가 되지 않음
 
-```
+[참고 - 타입스크립트의 공변셩, 반공변성](https://inpa.tistory.com/entry/TS-%F0%9F%93%98-%ED%83%80%EC%9E%85%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8-%EA%B3%B5%EB%B3%80%EC%84%B1-%EB%B0%98%EA%B3%B5%EB%B3%80%EC%84%B1-%F0%9F%92%A1-%ED%95%B5%EC%8B%AC-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0)
