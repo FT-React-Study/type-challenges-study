@@ -20,7 +20,7 @@ false condition은 any여도 never여도 상관없다고 볼 수 있다. infer�
 
 ```ts
 type MyOmit<T extends object, U extends keyof T> = {
-  [K in Exclude<keyof T, U>]: T[K];
+  [K in Exclude<U, keyof T>]: T[K];
 };
 ```
 

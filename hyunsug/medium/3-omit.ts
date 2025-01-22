@@ -1,5 +1,5 @@
 type MyOmit<T extends object, U extends keyof T> = {
-  [K in Exclude<keyof T, U>]: T[K];
+  [K in Exclude<U, keyof T>]: T[K];
 };
 
 interface Todo {
