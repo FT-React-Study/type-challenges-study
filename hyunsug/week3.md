@@ -52,6 +52,16 @@ type RenameKeys<T> = {
 
 ## [Medium-8-Readonly-2](./medium/8-readonly-2.ts)
 
+```ts
+type MyReadonly2<T extends object, U extends keyof T> = {
+  [K in keyof T as K extends U ? never : K]: T[K];
+} & {
+  readonly [K in keyof T as K extends U ? K : never]: T[K];
+};
+```
+
+- 단순하게, readonly를 적용한 object와 readonly가 적용되지 않은 object를 Intersection하는 형태로 작성
+
 ## [Medium-9-Deep-Readonly](./medium/9-deep-readonly.ts)
 
 ## [Medium-10-Tuple-to-Union](./medium/10-tuple-to-union.ts)
