@@ -267,3 +267,65 @@ type MyReadonly2<T, K extends keyof T = keyof T> = {
 #### 제네릭 기본값
 
 제네릭에 = 를 붙이면 기본값을 넣을 수 있었다
+
+
+
+## Deep Readonly
+
+객체의 프로퍼티와 모든 하위 객체를 재귀적으로 읽기 전용으로 설정하는 제네릭 `DeepReadonly<T>`를 구현하세요.
+
+이 챌린지에서는 타입 파라미터 `T`를 객체 타입으로 제한하고 있습니다. 객체뿐만 아니라 배열, 함수, 클래스 등 가능한 다양한 형태의 타입 파라미터를 사용하도록 도전해 보세요.
+
+예시:
+
+```ts
+type X = { 
+  x: { 
+    a: 1
+    b: 'hi'
+  }
+  y: 'hey'
+}
+
+type Expected = { 
+  readonly x: { 
+    readonly a: 1
+    readonly b: 'hi'
+  }
+  readonly y: 'hey' 
+}
+
+type Todo = DeepReadonly<X> // should be same as `Expected`
+```
+
+
+
+### 첫번째 접근
+
+```ts
+type DeepReadonly<T> = {
+  readonly [P in keyof T as P extends DeepReadonly<P> ? DeepReadonly<P> : P]: T[P]
+}
+```
+
+as 필터링을 이용했다
+
+다만 객체가 있는 상태인지 필터링을 제한하는 방법이 혼란스러웠다
+
+
+
+### 답
+
+```ts
+type DeepReadonly<T> = {
+  readonly [P in keyof T]: T[P] extends object
+    ? T[P] extends Function
+      ? T[P]
+      : DeepReadonly<T[P]>
+    : T[P];
+};
+```
+
+이렇게 하면 된다 한다
+
+value값에 재귀를 걸어주면 된다
