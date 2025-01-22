@@ -18,6 +18,38 @@ false condition은 any여도 never여도 상관없다고 볼 수 있다. infer�
 
 ## [Medium-3-Omit](./medium/3-omit.ts)
 
+```ts
+type MyOmit<T extends object, U extends keyof T> = {
+  [K in Exclude<keyof T, U>]: T[K];
+};
+```
+
+- T는 객체 타입이어야 함
+- U는 T 객체의 key값의 유니온의 subset이어야 함
+- Exclude를 통해 T의 키 유니온에서 U를 제외함 (이전 easy에서 사용한 MyExclude를 사용해도 됨)
+
+### 다른 솔루션 참고 - `as`를 사용한 `Key Remapping`
+
+```ts
+type MyOmit<T extends object, U extends keyof T> = {
+  [K in keyof T as K extends U ? never : K]: T[K];
+};
+```
+
+- K는 T의 key 유니온의 서브셋이어야 한다
+- `as K extends U`를 통해 U의 서브셋이라면 제외한다
+- 여기서 사용된 `as`를 이용하면 새로운 타입을 만들면서 키의 리네이밍이 가능해진다.
+
+```ts
+type RenameKeys<T> = {
+  [K in keyof T as `prefix_${string & K}`]: T[K];
+};
+```
+
+- 이 때 주의할 점은 `${string & K}` 부분이다.
+- JS에서 Object의 Key는 string과 Symbol타입으로 존재한다.
+- Symbol은 문자열과 합쳐질 수 없기에 string & K 타입 인터섹션을 통해 변환 가능한 키만 필터링하여 리네이밍을 하게 된다. 결과적으로 문자열로 전환이 가능한 키만 남아 리네이밍된 타입이 생성된다.
+
 ## [Medium-8-Readonly-2](./medium/8-readonly-2.ts)
 
 ## [Medium-9-Deep-Readonly](./medium/9-deep-readonly.ts)
