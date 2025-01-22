@@ -72,3 +72,122 @@ type MyReturnType<T> = T extends (...args: any[]) => (infer P) ? P : never
 
 
 
+## Omit
+
+`T`에서 `K` 프로퍼티만 제거해 새로운 오브젝트 타입을 만드는 내장 제네릭 `Omit<T, K>`를 이를 사용하지 않고 구현하세요.
+
+예시:
+
+```ts
+interface Todo {
+  title: string
+  description: string
+  completed: boolean
+}
+
+type TodoPreview = MyOmit<Todo, 'description' | 'title'>
+
+const todo: TodoPreview = {
+  completed: false,
+}
+```
+
+```ts
+type MyOmit<T, K> = any
+
+/* _____________ 테스트 케이스 _____________ */
+import type { Equal, Expect } from '@type-challenges/utils'
+
+type cases = [
+  Expect<Equal<Expected1, MyOmit<Todo, 'description'>>>,
+  Expect<Equal<Expected2, MyOmit<Todo, 'description' | 'completed'>>>,
+  Expect<Equal<Expected3, MyOmit<Todo1, 'description' | 'completed'>>>,
+]
+
+```
+
+### 문제 분석
+
+객체 형식의 타입에서 두번째 제네릭 값에 포함되는 키를 제외하고 다시 객체 형식의 타입으로 반환한다
+
+
+
+### 첫번째 접근
+
+```ts
+type FirstMyOmit<T, K> = {
+  [P in (keyof T)] : P extends K ? never : T[P]
+}
+```
+
+T의 키값을 순회하면서 그 키값이 K에 포함되지 않으면 반환하지 않도록 설정했다
+
+하지만 다시 보니 이런경우 그 키값이 빠지는게 아니라 K에 속하는 경우 value값만 never로 반환할 뿐이었다
+
+### 두번째 접근
+
+```ts
+type MyOmit<T, K> = {
+  [P in ((keyof T) extends K ? never : (keyof T))] : T[P]
+}
+```
+
+그래서 애초에 순회하는 타입을 제한해서 순회하는 것으로 생각했다
+
+T의 키값에 분배 법칙으로 K에 포함되는지 테스트 해서 유니온 타입으로 만든 다음에 순회를 돌리려 했다
+
+### 세번째 접근
+
+```ts
+type MyOmit<T, K> = {
+  [P in keyof T as P extends K ? never : P] : T[P]
+}
+```
+
+as를 해야 위에 의도한 대로 작동을 했다.
+
+
+
+### as
+
+as는 여러방식으로 쓰이는데 일단 여기서는 조건부 필터링
+
+로 쓰인다
+
+순회를 돌때 그 P값이 뒤에 조건에 따라 필터링이 되는 것이다
+
+모양은 두번째 접근이랑 비슷한데 동작은 첫번째 접근에서 의도한 대로 동작한다
+
+
+
+두번째 접근이 T를 먼저 한정 -> P 순회라면
+
+첫번째 접근은 P순회한 이후 -> P를 한정
+
+인데 as를 사용할 경우 순회해서 P를 만들어 낸 후 그 P를 조건부로 필터링할 수 있게 된다
+
+
+
+## Readonly 2
+
+`T`에서 `K` 프로퍼티만 읽기 전용으로 설정해 새로운 오브젝트 타입을 만드는 제네릭 `MyReadonly2<T, K>`를 구현하세요. `K`가 주어지지 않으면 단순히 `Readonly<T>`처럼 모든 프로퍼티를 읽기 전용으로 설정해야 합니다.
+
+예시:
+
+```ts
+interface Todo {
+  title: string
+  description: string
+  completed: boolean
+}
+
+const todo: MyReadonly2<Todo, 'title' | 'description'> = {
+  title: "Hey",
+  description: "foobar",
+  completed: false,
+}
+
+todo.title = "Hello" // Error: cannot reassign a readonly property
+todo.description = "barFoo" // Error: cannot reassign a readonly property
+todo.completed = true // OK
+```
