@@ -64,6 +64,25 @@ type MyReadonly2<T extends object, U extends keyof T> = {
 
 ## [Medium-9-Deep-Readonly](./medium/9-deep-readonly.ts)
 
+```ts
+type DeepReadonly<T> = T extends Function
+  ? T
+  : T extends object
+  ? {
+      readonly [K in keyof T]: DeepReadonly<T[K]>;
+    }
+  : T;
+```
+
+- 함수 타입의 경우 readonly를 적용 후 함수 타입 자체를 반환
+- 객체 타입의 경우 key를 기반으로 다시 객체 타입의 상속을 받는 value에 대해 재귀를 진행
+- 이외는 그대로 반환
+
+- 예제 유니언 타입의 경우 X2: TS 분배법칙을 통해 각각 처리 후 유니언화
+- 예제 X1에서의 경우
+  - 함수: 함수 처리로 통과
+  - 배열/튜플: 배열과 튜플 또한 객체 상속을 받기에 정상 적용 됨
+
 ## [Medium-10-Tuple-to-Union](./medium/10-tuple-to-union.ts)
 
 ## [Medium-12-Chainable-Options](./medium/12-chainable-options.ts)
