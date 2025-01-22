@@ -75,6 +75,7 @@ type DeepReadonly<T> = T extends (...args: any[]) => any
 ```
 
 - 함수 타입의 경우 readonly를 적용 후 함수 타입 자체를 반환 `(...args: any[]) => any`
+- 여기서 함수타입 체크에서 `Function`은 생성자로 클래스 등을 포함하므로 함수 타입은 화살표 형태를 많이 사용한다고 함
 - 객체 타입의 경우 key를 기반으로 다시 객체 타입의 상속을 받는 value에 대해 재귀를 진행
 - 이외는 그대로 반환
 
