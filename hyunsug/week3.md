@@ -85,4 +85,12 @@ type DeepReadonly<T> = T extends Function
 
 ## [Medium-10-Tuple-to-Union](./medium/10-tuple-to-union.ts)
 
+```ts
+type TupleToUnion<T> = T extends ReadonlyArray<infer U> ? U : never;
+```
+
+- `T extends ReadonlyArray<infer U>`를 통해 ReadonlyArray(Tuple을 포함함 Array)의 value 유니언 값을 U로 추출하여 반환
+- `T extends Array<infer U>`일 시 T는 튜플이 아닌 일반 배열임을 의미
+  - 예시: `const testArr = [123, "456", false] as const`를 사용하면 `TupleToUnion<typeof testArr>`이 `never` 타입으로 나타난다.
+
 ## [Medium-12-Chainable-Options](./medium/12-chainable-options.ts)
