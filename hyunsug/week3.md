@@ -94,3 +94,40 @@ type TupleToUnion<T> = T extends ReadonlyArray<infer U> ? U : never;
   - 예시: `const testArr = [123, "456", false] as const`를 사용하면 `TupleToUnion<typeof testArr>`이 `never` 타입으로 나타난다.
 
 ## [Medium-12-Chainable-Options](./medium/12-chainable-options.ts)
+
+```ts
+type Chainable<T = {}> = {
+  option: <K extends string, V extends any>(
+    key: K,
+    value: V
+  ) => Chainable<T & { [Key in K]: V }>;
+  get: () => T;
+};
+```
+
+- option은 Chainable을 반환해야 하며 받은 key-value 쌍을 갖게 해야 한다.
+- get은 Chainable을 반환해야 한다.
+
+- 예제 2, 3를 통해 갖춰야 할 추가적인 조건은 다음과 같다.
+  - 동일 key가 들어온다면 에러여야 한다
+  - 동일 key가 들어오지만 value의 타입이 다른 경우 타입은 변경해야 한다.
+
+```ts
+type Chainable<T = {}> = {
+  option: <K extends string, V>(
+    key: Exclude<K, keyof T>,
+    value: V
+  ) => Chainable<Omit<T, K> & Record<K, V>>;
+  get: () => T;
+};
+```
+
+- "동일한 key 값은 전달되어서는 안된다" 이 타입 에러를 발생시키기 위해 `Exclude<K, keyof T>`를 사용한다.
+
+  - 파라미터에 이미 전달되었던 "name"이라는 key가 전달되었을 때 이는 타입 에러를 발생시킨다.
+
+- `Omit<T, K> & Record<K, V>` name이 number로 바뀌는 것을 본다면 key의 value는 override가 가능함을 알 수 있다.
+  따라서, K라는 key를 T에서 제거하고 `Record<K, V>` 인터섹션을 진행한다.
+
+- ParameterType과 ReturnType이 독립적으로 적용되는 것을 이해하는데 시간이 걸렸던 문항
+  > never로 평가된 K는 return 타입에서 이용될 수 있는가? 라는 질문에 답을 얻는 시간이 걸렸다.
