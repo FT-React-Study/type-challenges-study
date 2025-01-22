@@ -329,3 +329,31 @@ type DeepReadonly<T> = {
 이렇게 하면 된다 한다
 
 value값에 재귀를 걸어주면 된다
+
+
+
+## 10 Tuple To Union
+
+튜플 값으로 유니온 타입을 생성하는 제네릭 `TupleToUnion<T>`를 구현하세요.
+
+예시:
+
+```ts
+type Arr = ['1', '2', '3']
+
+type Test = TupleToUnion<Arr> // expected to be '1' | '2' | '3'
+```
+
+```ts
+type cases = [
+  Expect<Equal<TupleToUnion<[123, '456', true]>, 123 | '456' | true>>,
+  Expect<Equal<TupleToUnion<[123]>, 123>>,
+]
+```
+
+답
+
+```ts
+type TupleToUnion<T extends unknown[]> = T[number]
+```
+
