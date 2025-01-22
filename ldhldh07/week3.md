@@ -191,3 +191,79 @@ todo.title = "Hello" // Error: cannot reassign a readonly property
 todo.description = "barFoo" // Error: cannot reassign a readonly property
 todo.completed = true // OK
 ```
+
+
+
+```ts
+import type { Alike, Expect } from '@type-challenges/utils'
+
+type cases = [
+  Expect<Alike<MyReadonly2<Todo1>, Readonly<Todo1>>>,
+  Expect<Alike<MyReadonly2<Todo1, 'title' | 'description'>, Expected>>,
+  Expect<Alike<MyReadonly2<Todo2, 'title' | 'description'>, Expected>>,
+  Expect<Alike<MyReadonly2<Todo2, 'description' >, Expected>>,
+]
+
+```
+
+
+
+### 첫번째 접근
+
+```ts
+type MyReadonly2<T, K> = {
+  [P in keyof T as P extends K ? readonly P : P]: T[P]
+}
+```
+
+readonly는 개체의 속성에만 붙일 수 있는 거여서 저렇게는 안붙는다
+
+### 두번째 접근
+
+```ts
+type MyReadonly2<T, K> = {
+  readonly [P in keyof T as P extends K ? P : never]: T[P]
+} & {
+  [P in keyof T as P extends K ? never : P]: T[P]
+}
+```
+
+이렇게 했는데
+
+이 경우 
+
+```ts
+  Expect<Alike<MyReadonly2<Todo1>, Readonly<Todo1>>>,
+```
+
+가 통과가 안되고
+
+에러도 안된다
+
+### 세번째 접근
+
+```ts
+type MyReadonly2<T, K extends keyof T> = {
+  readonly [P in keyof T as P extends K ? P : never]: T[P]
+} & {
+  [P in keyof T as P extends K ? never : P]: T[P]
+}
+```
+
+일단 에러를 발생시켰다
+
+### 네번째 접근
+
+```ts
+type MyReadonly2<T, K extends keyof T = keyof T> = {
+  readonly [P in keyof T as P extends K ? P : never]: T[P]
+} & {
+  [P in keyof T as P extends K ? never : P]: T[P]
+}
+```
+
+두번째 인자가 없을 경우 그냥 전체를 readonly를 해야 했다
+
+#### 제네릭 기본값
+
+제네릭에 = 를 붙이면 기본값을 넣을 수 있었다
