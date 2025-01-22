@@ -1,4 +1,4 @@
-type DeepReadonly<T> = T extends Function
+type DeepReadonly<T> = T extends (...args: any[]) => any
   ? T
   : T extends object
   ? {

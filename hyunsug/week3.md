@@ -65,7 +65,7 @@ type MyReadonly2<T extends object, U extends keyof T> = {
 ## [Medium-9-Deep-Readonly](./medium/9-deep-readonly.ts)
 
 ```ts
-type DeepReadonly<T> = T extends Function
+type DeepReadonly<T> = T extends (...args: any[]) => any
   ? T
   : T extends object
   ? {
@@ -74,7 +74,7 @@ type DeepReadonly<T> = T extends Function
   : T;
 ```
 
-- 함수 타입의 경우 readonly를 적용 후 함수 타입 자체를 반환
+- 함수 타입의 경우 readonly를 적용 후 함수 타입 자체를 반환 `(...args: any[]) => any`
 - 객체 타입의 경우 key를 기반으로 다시 객체 타입의 상속을 받는 value에 대해 재귀를 진행
 - 이외는 그대로 반환
 
