@@ -50,6 +50,58 @@ type RenameKeys<T> = {
 - JS에서 Object의 Key는 string과 Symbol타입으로 존재한다.
 - Symbol은 문자열과 합쳐질 수 없기에 string & K 타입 인터섹션을 통해 변환 가능한 키만 필터링하여 리네이밍을 하게 된다. 결과적으로 문자열로 전환이 가능한 키만 남아 리네이밍된 타입이 생성된다.
 
+### Type Intersection ("_교집합_") `&`
+
+- 객체 타입에서는 두 타입의 모든 프로퍼티를 병합한다.
+
+```ts
+interface A {
+  a: number;
+}
+
+interface B {
+  b: string;
+}
+
+type AB = A & B;
+
+// AB = { a: number; b: string };
+```
+
+- 동일한 key가 있다면 해당 key의 타입은 타입의 교집합이 된다.
+- 호환되지 않는 타입이 있다면 `never`가 된다.
+
+```ts
+interface A {
+  key: string;
+}
+
+interface B {
+  key: "specific";
+}
+
+type AB = A & B;
+// AB = { key: "specific" } (string & "specific" => "specific")
+```
+
+```ts
+interface A {
+  key: string;
+}
+
+interface B {
+  key: number;
+}
+
+type AB = A & B;
+// AB = { key: never } (string & number => never)
+```
+
+- 타입 인터섹션은 교집합, 즉 두 타입의 서브셋으로 좁혀진다
+- 원시 타입이라면 교집합은 공통으로 가능한 값들로 평가된다
+- 키 리맵핑 과정의 `string & K`에서는 원시타입의 인터섹션이 된다.
+- 객체의 키로 사용되는 숫자는 문자열로 전환되기 때문에 K의 string과 number는 string으로 전환될 수 있다
+
 ## [Medium-8-Readonly-2](./medium/8-readonly-2.ts)
 
 ```ts
