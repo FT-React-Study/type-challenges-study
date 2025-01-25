@@ -166,3 +166,52 @@ type Result2 = ExtractFunctionReturnType<number>; // never (추론 실패)
 
 
 빈 배열에서는 ...으로 나머지를 받을 요소가 없고, 그러면서 false로 판단이 되는 것이다.
+
+
+
+## 16 - Pop
+
+배열 `T`를 사용해 마지막 요소를 제외한 배열을 반환하는 제네릭 `Pop<T>`를 구현합니다.
+
+예시
+
+```
+type arr1 = ['a', 'b', 'c', 'd']
+type arr2 = [3, 2, 1]
+
+type re1 = Pop<arr1> // expected to be ['a', 'b', 'c']
+type re2 = Pop<arr2> // expected to be [3, 2]
+```
+
+
+
+**더보기**: 비슷하게 `Shift`, `Push` 그리고 `Unshift`도 구현할 수 있을까요?
+
+```ts
+type Pop<T extends any[]> = any
+
+/* _____________ 테스트 케이스 _____________ */
+import type { Equal, Expect } from '@type-challenges/utils'
+
+type cases = [
+  Expect<Equal<Pop<[3, 2, 1]>, [3, 2]>>,
+  Expect<Equal<Pop<['a', 'b', 'c', 'd']>, ['a', 'b', 'c']>>,
+  Expect<Equal<Pop<[]>, []>>,
+]
+```
+
+
+
+### 문제 분석
+
+기존 배열에서 마지막 항을 뺀 후 반납하는 pop이랑은 다르게 배열 타입에서 마지막 항을 뺸 후 마지막 항이 빠진 나머지 배열 타입을 반환한다.
+
+
+
+### 첫번째 접근
+
+```ts
+type Pop<T extends any[]> = T extends [...infer Rest, infer _Last] ? Rest : []
+```
+
+이전 문제랑 세트 느낌이라 쉽게 풀 수 있었다.
