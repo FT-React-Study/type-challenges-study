@@ -56,7 +56,7 @@ const onFinally = () => {
 promise.then(onFulfilled, onRejected).catch(onRejected).finally(onFinally);
 ```
 
-## [Easy-268-Easy-If]
+## [Easy-268-Easy-If](./easy/easy-268-if.ts)
 
 ```ts
 type If<C extends boolean, T, F> = C extends true ? T : F;
@@ -66,7 +66,7 @@ type If<C extends boolean, T, F> = C extends true ? T : F;
 - T: True 시 반환되는 타입
 - F: False 시 반환되는 타입
 
-## [Easy-533-Easy-Concat]
+## [Easy-533-Easy-Concat](./easy/easy-533-concat.ts)
 
 ```ts
 type Concat<T extends any[], U extends any[]> = [...T, ...U];
@@ -75,7 +75,7 @@ type Concat<T extends any[], U extends any[]> = [...T, ...U];
 - T, U: 각각 배열 타입
 - spread operator를 이용하여 배열을 합치는 타입
 
-## [Easy-898-Easy-Includes]
+## [Easy-898-Easy-Includes](./easy/easy-898-includes.ts)
 
 ### 처음 풀이
 
@@ -136,7 +136,7 @@ type Includes<T extends any[], U> = T extends [infer F, ...infer R]
 - 비교 결과가 true라면 true를 반환, 아니라면 다음 요소와 비교
 - 모든 요소를 비교한 후에도 일치하는 요소가 없다면 false를 반환
 
-## [Easy-3057-Easy-Push]
+## [Easy-3057-Easy-Push](./easy/easy-3057-push.ts)
 
 ```ts
 type Push<T extends unknown[], U> = [...T, U];
@@ -149,7 +149,7 @@ type Push<T extends unknown[], U> = [...T, U];
 - unknown의 사용: 실제 사용 시 unknown 타입은 모든 타입일 수 있기에 타입 추론, 검사 과정을 요구함
   하지만 any 타입은 모든 타입을 포함하기에 타입 추론, 검사 과정을 요구하지 않아 런타임 에러 발생 가능
 
-## [Easy-3060-Easy-Unshift]
+## [Easy-3060-Easy-Unshift](./easy/easy-3060-unshift.ts)
 
 ```ts
 type Unshift<T extends unknown[], U> = [U, ...T];
@@ -159,7 +159,7 @@ type Unshift<T extends unknown[], U> = [U, ...T];
 - U: 배열 타입의 요소 타입
 - spread operator를 이용하여 배열의 맨 앞에 U를 추가하는 타입
 
-## [Easy-3312-Easy-Parameters]
+## [Easy-3312-Easy-Parameters](./easy/easy-3312-parameters.ts)
 
 ```ts
 type MyParameters<T extends (...args: any[]) => unknown> = T extends (
