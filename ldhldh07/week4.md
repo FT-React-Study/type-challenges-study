@@ -215,3 +215,104 @@ type Pop<T extends any[]> = T extends [...infer Rest, infer _Last] ? Rest : []
 ```
 
 이전 문제랑 세트 느낌이라 쉽게 풀 수 있었다.
+
+
+
+### Promise.all
+
+```ts
+Type the function PromiseAll that accepts an array of PromiseLike objects, the returning value should be Promise<T> where T is the resolved result array.
+
+const promise1 = Promise.resolve(3);
+const promise2 = 42;
+const promise3 = new Promise<string>((resolve, reject) => {
+  setTimeout(resolve, 100, 'foo');
+});
+
+// expected to be `Promise<[number, 42, string]>`
+const p = PromiseAll([promise1, promise2, promise3] as const)
+
+const promiseAllTest1 = PromiseAll([1, 2, 3] as const)
+const promiseAllTest2 = PromiseAll([1, 2, Promise.resolve(3)] as const)
+const promiseAllTest3 = PromiseAll([1, 2, Promise.resolve(3)])
+const promiseAllTest4 = PromiseAll<Array<number | Promise<number>>>([1, 2, 3])
+
+type cases = [
+  Expect<Equal<typeof promiseAllTest1, Promise<[1, 2, 3]>>>,
+  Expect<Equal<typeof promiseAllTest2, Promise<[1, 2, number]>>>,
+  Expect<Equal<typeof promiseAllTest3, Promise<[number, number, number]>>>,
+  Expect<Equal<typeof promiseAllTest4, Promise<number[]>>>,
+```
+
+### 문제 분석
+
+function으로 PromiseAll이라는 함수에 typeof를 붙일 경우 Promise 유틸리티 타입을 반환한다
+
+
+
+### 정답
+
+```ts
+  declare function PromiseAll<T extends readonly unknown[]>(
+    values: [...T]
+  ): Promise<{ [K in keyof T]: Awaited<T[K]> }>;
+```
+
+
+
+#### 제네릭 타입 변수
+
+[공식문서](https://www.typescriptlang.org/ko/docs/handbook/2/generics.html#%EC%A0%9C%EB%84%A4%EB%A6%AD%EC%9D%98-hello-world-hello-world-of-generics)
+
+지금까지 타입 추론에 infer를 주로 사용해왔다.
+
+함수의 경우 함수의 파라미터 타입을 추론해서 제네릭으로 받은 후, 반환 타입에서도 사용할 수 있다.
+
+
+
+제네릭의 타입은 인수의 타입을 캡쳐하고 이 정보를 사용할 수 있다
+
+```ts
+function identity<Type>(arg: Type): Type {
+  return arg;
+}
+```
+
+함수가 실행될 때 T가 결정된다. 그렇기 때문에 매개변수 타입을 각각 매핑해서 프로미스의 튜플 타입으로 반환하는 형식이 된다.
+
+
+
+#### T와 [...T]의 차이
+
+제네릭에서 매개변수의 변수를 readonly 튜플 타입이 아니라 일반 배열로 추론하게 됨
+
+T전체의 타입을 추론하기 때문에 readonly 리터럴 타입이 아닌 배열 타입으로 추론
+
+하지만 [...T]의 경우 T를 분해한 후 새로운 튜플을 생성한다.
+
+
+
+새로운 튜플을 생성할때 이전 타입을 가져오고 readonly 튜플 타입을 유지한다
+
+
+
+#### { [K in keyof T]: [T]K }
+
+include에서 봤던 매핑된 타입 형식이다
+
+여기서 헷갈린건 처음에 이를 익힐 때 객체 형식일거라고 생각했다. {}를 쓰기 때문이다.
+
+하지만 튜플 형식으로 반환한다.
+
+
+
+그렇기 때문에 인자에서 추론한 튜플 타입을 하나씩 매핑해서 해당 인자에 맞는 awaited 반환 타입을 다시 튜플 타입으로 매핑할 수 있다
+
+
+
+##
+
+
+
+
+
