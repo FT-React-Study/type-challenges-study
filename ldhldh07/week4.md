@@ -310,9 +310,83 @@ include에서 봤던 매핑된 타입 형식이다
 
 
 
-##
+## 62 Type Lookup
+
+때때로 유니온 타입의 특정 속성을 기준으로 조회할 수도 있습니다.
+
+이 챌린지에서는 유니온 타입 `Cat | Dog`에서 공통으로 사용하는 `type` 필드를 기준으로 해당하는 타입을 얻고자 합니다. 다시 말해서, 다음 예시에서는 `LookUp<Cat | Dog, 'dog'>`으로 `Dog` 타입을, `LookUp<Cat | Dog, 'cat'>`으로 `Cat` 타입을 얻을 수 있습니다.
+
+```ts
+interface Cat {
+  type: 'cat'
+  breeds: 'Abyssinian' | 'Shorthair' | 'Curl' | 'Bengal'
+}
+
+interface Dog {
+  type: 'dog'
+  breeds: 'Hound' | 'Brittany' | 'Bulldog' | 'Boxer'
+  color: 'brown' | 'white' | 'black'
+}
+
+type MyDogType = LookUp<Cat | Dog, 'dog'> // 기대되는 결과는 `Dog`입니다.
+```
+
+```ts
+import type { Equal, Expect } from '@type-challenges/utils'
+
+interface Cat {
+  type: 'cat'
+  breeds: 'Abyssinian' | 'Shorthair' | 'Curl' | 'Bengal'
+}
+
+interface Dog {
+  type: 'dog'
+  breeds: 'Hound' | 'Brittany' | 'Bulldog' | 'Boxer'
+  color: 'brown' | 'white' | 'black'
+}
+
+type Animal = Cat | Dog
+
+type cases = [
+  Expect<Equal<LookUp<Animal, 'dog'>, Dog>>,
+  Expect<Equal<LookUp<Animal, 'cat'>, Cat>>,
+]
+```
 
 
 
 
 
+### 문제 분석
+
+`type`이라는 속성이 존재하는 타입들의 유니온 타입이 제네릭의 첫번째로 들어가고 두번째로 그 타입에 들어가는 value가 들어간다
+
+이때 두번째 제네릭에 있는 값을 'type' 속성의 value값으로 가지고 있는 interface 타입을 반환하는 유틸리티 타입이다
+
+
+
+### 첫번째 접근
+
+```ts
+type MyLookUp<U extends {type: any}, T> = U['type'] extends T ? U : never;
+```
+
+먼제 U가 type이라는 속성을 가지고 있는 타입이라는걸 분배 법칙으로 한정해줬다
+
+그리고 그 value가 T일때 그 U를 반환하도록 했다
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type MyLookUp<U extends {type: any}, T> = U extends {type: T} ? U : never;
+```
+
+`U['type'] extends T`가 아니라 `U extends {type: T}`를 이용했다
+
+
+
+U['type']은 분배 타입에 따라 `'cat' | 'dog'`로 평가가 됨
+
+유니온 타입을 평가하는 시점이 ['type']를 탐색하는 때가 아니라 먼저 분배를 하고 type이 T인지 확인해야 한다 
