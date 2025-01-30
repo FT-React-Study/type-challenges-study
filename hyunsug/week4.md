@@ -87,6 +87,31 @@ declare function PromiseAll<
 
 ## [Medium-62-Type-Lookup](./medium/62-type-lookup.ts)
 
+```ts
+type LookUp<U, Key> = U extends { type: Key } ? U : never;
+```
+
+- 유니언 타입 각각이 가진 `type` 프로퍼티를 참조하여 타입을 추론한다
+
 ## [Medium-106-Trim-Left](./medium/106-trim-left.ts)
+
+```ts
+type TrimLeft<S> = S extends ` ${infer R}` ? TrimLeft<R> : S;
+```
+
+- `infer R`은 문자열에서 공백 하나를 제거한 나머지를 추출한다.
+- 이는 공백 문자열만을 제거할 수 있다.
+
+```ts
+type Space = " " | "\t" | "\n";
+type TrimLeft<S extends string> = S extends `${Space}${infer R}`
+  ? TrimLeft<R>
+  : S;
+```
+
+- 위 방식은 명시적으로 `" "`(공백 문자열), `"\t"`(탭), `"\n"`(줄바꿈) 타입을 Space로 정의한다 (예제에서 주어진 공백은 공백 문자열, \n, \t 세종류가 존재함)
+- `${Space}`는 공백 문자열을 의미하며, `${Space}${infer R}`은 공백 문자열 뒤에 문자열이 오는 경우를 의미한다
+- 이 경우 공백 문자열을 제거하고 나머지 문자열을 추출하여 재귀적으로 처리한다
+- 만약 공백 문자열이 아닌 경우 원래 문자열을 반환한다
 
 ## [Medium-108-Trim](./medium/108-trim.ts)
