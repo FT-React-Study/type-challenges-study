@@ -115,3 +115,14 @@ type TrimLeft<S extends string> = S extends `${Space}${infer R}`
 - 만약 공백 문자열이 아닌 경우 원래 문자열을 반환한다
 
 ## [Medium-108-Trim](./medium/108-trim.ts)
+
+```ts
+type Space = " " | "\t" | "\n";
+type Trim<S extends string> = S extends `${Space}${infer R}`
+  ? Trim<R>
+  : S extends `${infer R}${Space}`
+  ? Trim<R>
+  : S;
+```
+
+- 문자열의 앞뒤 공백 문자열을 재귀를 거쳐 제거한다.
