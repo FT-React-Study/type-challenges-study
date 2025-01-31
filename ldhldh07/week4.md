@@ -390,3 +390,137 @@ type MyLookUp<U extends {type: any}, T> = U extends {type: T} ? U : never;
 U['type']은 분배 타입에 따라 `'cat' | 'dog'`로 평가가 됨
 
 유니온 타입을 평가하는 시점이 ['type']를 탐색하는 때가 아니라 먼저 분배를 하고 type이 T인지 확인해야 한다 
+
+
+
+### 타입 패턴 매칭
+
+해당 문제는 이 문제의 로직을 작성하는 것보다는 이 동작 자체에 대해서 좀 관심이 갔다.
+
+이 동작은 특정 'type'속성을 가지고 있는 지 평가하는 동작이다.
+
+타입스크립트 언어에서 타입 평가를 할때 어떤 타입인지 평가를 할 텐데 그걸 기본적인 형태로 보여준 것이라고 느꼈다.
+
+패턴 매칭 - 특정 구조(패턴)을 가진 데이터를 식별하고 매칭하는 방식
+
+
+
+해당 Lookup도 타입이 일치하는, 패턴이 일치하는 경우 그걸 반환한다.
+
+이런 패턴 매칭을 이용해 선언적으로 작성한 문법이다.
+
+실제로 타입스크립트 런타입 코드 레벨에서 패턴 매칭을 해주는 라이브러리인 ts-pattern이 이거랑 비슷한 형태로 구현되어있음
+
+## 106 - Trim Left
+
+정확한 문자열 타입이고 시작 부분의 공백이 제거된 새 문자열을 반환하는 `TrimLeft<T>`를 구현하십시오.
+
+예시
+
+```ts
+type trimed = TrimLeft<'  Hello World  '> // 기대되는 결과는 'Hello World  '입니다.
+```
+
+```ts
+import type { Equal, Expect } from '@type-challenges/utils'
+
+type cases = [
+  Expect<Equal<TrimLeft<'str'>, 'str'>>,
+  Expect<Equal<TrimLeft<' str'>, 'str'>>,
+  Expect<Equal<TrimLeft<'     str'>, 'str'>>,
+  Expect<Equal<TrimLeft<'     str     '>, 'str     '>>,
+  Expect<Equal<TrimLeft<'   \n\t foo bar '>, 'foo bar '>>,
+  Expect<Equal<TrimLeft<''>, ''>>,
+  Expect<Equal<TrimLeft<' \n\t'>, ''>>,
+]
+```
+
+
+
+### 문제분석
+
+문자열 타입을 반환해야 한다는 점이 생소했다.
+
+
+
+### 첫번째 접근
+
+```ts
+type TrimLeft<S extends string> = {[U in S as U extends string ? U : never ]: U }
+```
+
+
+
+문자열을 배열로 바꾼 후에 스프레드 연산자와 infer를 이용한 방식을 생각했었다
+
+하지만 타입스크립트는 문자열을 그냥 순회돌릴수 있는 시스템이 아니었다
+
+그리고 배열로 바꾸더라도 그걸 다시 문자열로 바꿀 수 있는 방법이 떠오르지 않았다
+
+### 타입스크립트에서의 템플릿 리터럴
+
+템플릿 리터럴 : 백틱 과 템플릿 플레이스홀더`${}`를 이용해서 문자열에 변수를 포함해서 동적으로 정의할 수 있는 문법
+
+타입스크립트는 infer를 이용해서 이 기능을 강력하게 사용할 수 있다
+
+[공식문서](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html?utm_source=chatgpt.com)
+
+### 정답
+
+```ts
+type TrimLeft<S extends string> = 
+  S extends `${' ' | '\t' | '\n'}${infer Rest}` ? TrimLeft<Rest> : S;
+```
+
+S에 trim해야할 문자열들과 infer변수로 조합된 문자열을 할당한다.
+
+이때 trim해야할 문자열이 있는 경우 true로 판단하여 재귀적으로 이 과정을 반복한다.
+
+
+
+그 반복이 지속되지 않는 경우 - trim해야할 문자열이 앞부분에 없는 경우 - 반복이 종료된다
+
+
+
+#### 템플릿 리터럴과 infer
+
+동작에 의문이 들었던 것이 부분 - 템플릿 리터럴을 통해 하나의 문자와 나머지 문자열로 나눴을 때 그 '한글자' + '나머지 문자열'의 패턴을 S에도 패턴매칭이 이뤄져서 한글자 + 나머지 글자로 평가해주는 것이다.
+
+```ts
+type ExtractFirstChar<S extends string> = S extends `${First}${infer Rest}` ? First : never;
+```
+
+이는 **“문자열의 첫 번째 문자를 추출하는 로직을 선언적으로 작성”** 한 것이다
+
+문자열을 배열로 나눠서 분리하고, 거기서 첫글자를 분리해서 그 글자를 평가하고 다시 그 첫글자를 반환 -> 이런 어떻게'를 작성하는 것이 명령형
+
+템플릿 리터럴과 extends를 통해 특정 구조를 패턴 매칭 시킨 형태로 선언하는 것이 선언형
+
+
+
+여기서 S도 `${First}${infer Rest}`와 같이 데이터 구조로 선언되고
+
+어떤 데이터 구조를 만들고 그걸 extends로 평가할때 그 데이터 구조로 자동으로 매칭을 해서 s의 패턴을 평가하는 패턴매칭이 동작한다는 개념에 익숙해져야 한다.
+
+
+
+그렇기 때문에 infer도 평가가 이뤄진 후 해당 패턴으로 나눠진 뒷 부분의 값에 할당이 될 수 있다
+
+
+
+이게 선언형 프로그래밍 -> 타입스크립트의 타입 시스템이 선언형의 특성이 강하고 패턴매칭이 되기 때문에 이런식이 가능하다.
+
+의문이 든 것 자체가 그런 동작이 명령적으로 수행되었어야 한다는 명령적 프로그래밍에 익숙한 사고였고, 그 동작이 어떻게 수행되고 값들이 어떻게 제어되는지 명령형으로 되어있지 않는것에 익숙하지 않아서 그런것이다.
+
+
+
+이건 그 원리보다도 타입스크립트는 그렇게 동작하는 언어라는 것을 인식하고 이런 형식의 문법을 눈에 익히고 사고하는 것에 초점을 뒀다.
+
+
+
+## 108 - Trim
+
+
+
+
+
