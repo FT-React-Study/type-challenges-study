@@ -522,5 +522,40 @@ type ExtractFirstChar<S extends string> = S extends `${First}${infer Rest}` ? Fi
 
 
 
+정확한 문자열 타입이고 양쪽 끝의 공백이 제거된 새 문자열을 반환하는 `Trim<T>`를 구현하십시오.
+
+예시
+
+```ts
+type trimmed = Trim<'  Hello World  '> // 기대되는 결과는 'Hello World'입니다.
+```
+
+```ts
+import type { Equal, Expect } from '@type-challenges/utils'
+
+type cases = [
+  Expect<Equal<Trim<'str'>, 'str'>>,
+  Expect<Equal<Trim<' str'>, 'str'>>,
+  Expect<Equal<Trim<'     str'>, 'str'>>,
+  Expect<Equal<Trim<'str   '>, 'str'>>,
+  Expect<Equal<Trim<'     str     '>, 'str'>>,
+  Expect<Equal<Trim<'   \n\t foo bar \t'>, 'foo bar'>>,
+  Expect<Equal<Trim<''>, ''>>,
+  Expect<Equal<Trim<' \n\t '>, ''>>,
+]
+```
+
+### 문제분석
+
+양쪽의 공백, \n, \t를 제거
+
+### 첫번째 접근 - 정답
+
+```ts
+type Trim<S extends string> = S extends `${' '|'\n'|`\t`}${infer Rest}` ? Trim<Rest> :  S extends `${infer Rest}${' '|'\n'|`\t`}` ? Trim<Rest> : S
+```
+
+trim left 로직과 trim right로직을 순차적으로 실행해준다.
+
 
 
