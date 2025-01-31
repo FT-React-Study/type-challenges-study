@@ -19,8 +19,8 @@ type tail2 = Last<arr2>; // expected to be 1
 ### 정답
 
 ```ts
-type Last<T extends any[]> = T extends [...infer Rest, infer Last]
-  ? Last
+type Last<T extends any[]> = T extends [...infer Rest, infer LastElement]
+  ? LastElement
   : never;
 ```
 
