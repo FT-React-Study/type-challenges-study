@@ -69,7 +69,8 @@ declare function PromiseAll<T extends readonly any[]>(
 ```
 
 - `Awaited<T[K]>`는 `T[K]`가 Promise인 경우 Promise의 결과 타입을 반환하고, 그렇지 않은 경우 원래 타입을 반환한다. (Promise.resolve의 최종 타입)
-- 이번에는 예제 3에서 이슈가 보인다. 이는 주어진 배열이 `as const`가 없는 가변 배열이기 떄문이다.
+- ~~이번에는 예제 3에서 이슈가 보인다. 이는 주어진 배열이 `as const`가 없는 가변 배열이기 떄문이다.~~
+- 문제 풀이 중 타입스크립트 이슈가 있었는지 다시 보니 이 방식으로도 해결이 되고 있었다.
 
 ```ts
 declare function PromiseAll<
