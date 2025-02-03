@@ -236,3 +236,72 @@ type ReplaceAll<S extends string, From extends string, To extends string> =
 
 앞에서부터 진행되기 때문에 뒷부분에 재귀를 걸고 뒷부분 재귀를 건 후에 앞부분을 다시 합치는 방식으로 수정했더니 모든 케이스를 통과했다.
 
+
+
+## 191 - Append Argument
+
+함수 타입 `Fn`과 어떤 타입 `A`가 주어질 때 `Fn`의 인수와 `A`를 마지막 인수로 받는 `Fn`과 동일한 함수 유형인 `G`를 생성하세요.
+
+예시 :
+
+```ts
+type Fn = (a: number, b: string) => number
+
+type Result = AppendArgument<Fn, boolean> 
+// 기대되는 결과는 (a: number, b: string, x: boolean) => number 입니다.
+```
+
+```ts
+type Case1 = AppendArgument<(a: number, b: string) => number, boolean>
+type Result1 = (a: number, b: string, x: boolean) => number
+
+type Case2 = AppendArgument<() => void, undefined>
+type Result2 = (x: undefined) => void
+
+type cases = [
+  Expect<Equal<Case1, Result1>>,
+  Expect<Equal<Case2, Result2>>,
+  // @ts-expect-error
+  AppendArgument<unknown, undefined>,
+]
+```
+
+### 문제 분석
+
+기존 인수타입에서 두번째 제네릭의 타입을 인수로 추가하는 함수 타입을 생성하는 유틸리티 타입
+
+
+
+### 첫번째 접근
+
+```ts
+type AppendArgument<Fn extends Function, A> = Fn extends (...args: infer Args) => infer Res ? (x : A, ...args: Args) => Res : never
+```
+
+함수 인자타입과 반환타입을 infer로 추론하여 그대로 가져다 썼으며 `x: A`를 추가했다.
+
+`rest 매개 변수는 매개 변수 목록 마지막에 있어야 합니다.ts(1014)`
+
+그렇다고 ...args를 앞에 두면
+
+하지만 x가 인자 마지막에 들어가야 했으며 ...args를 앞으로 옮길수도 없었다
+
+
+
+### 두번째 접근
+
+```ts
+type AppendArgument<Fn extends Function, A> = Fn extends (...args: infer Args) => infer Res ? (args: [...Args, x : A]) => Res : never
+```
+
+타입만 분리해서 했지만 이 경우 args가 배열로 들어갔다
+
+
+
+### 세번째 접근 - 정답
+
+```ts
+type AppendArgument<Fn extends Function, A> = Fn extends (...args: infer Args) => infer Res ? (...args: [...Args, x : A]) => Res : never
+```
+
+스프레드 연산자로 배열 내부 값들이 복사해서 들어가도록 했다
