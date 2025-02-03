@@ -168,3 +168,71 @@ type Replace<S extends string, From extends string, To extends string> =
 
 
 이때 해당 할당타입에는 내부 string이 할당될 수 없는 어떤 타입이든 들어갈 수 있으며  `never`가 가장 자연스럽다
+
+
+
+
+
+## 119 - ReplaceAll
+
+주어진 문자열 `S`에서 부분 문자열 `From`을 찾아 모두 `To`로 교체하는 제네릭 `ReplaceAll<S, From, To>`을 구현하세요.
+
+예시:
+
+```ts
+type replaced = ReplaceAll<'t y p e s', ' ', ''> // expected to be 'types'
+```
+
+```ts
+type cases = [
+  Expect<Equal<ReplaceAll<'foobar', 'bar', 'foo'>, 'foofoo'>>,
+  Expect<Equal<ReplaceAll<'foobar', 'bag', 'foo'>, 'foobar'>>,
+  Expect<Equal<ReplaceAll<'foobarbar', 'bar', 'foo'>, 'foofoofoo'>>,
+  Expect<Equal<ReplaceAll<'t y p e s', ' ', ''>, 'types'>>,
+  Expect<Equal<ReplaceAll<'foobarbar', '', 'foo'>, 'foobarbar'>>,
+  Expect<Equal<ReplaceAll<'barfoo', 'bar', 'foo'>, 'foofoo'>>,
+  Expect<Equal<ReplaceAll<'foobarfoobar', 'ob', 'b'>, 'fobarfobar'>>,
+  Expect<Equal<ReplaceAll<'foboorfoboar', 'bo', 'b'>, 'foborfobar'>>,
+  Expect<Equal<ReplaceAll<'', '', ''>, ''>>,
+]
+```
+
+### 문제 분석
+
+제네릭 두번째 들어가는 단어가 다수 있을 때도 그 다수를 다 변환해야 한다.
+
+
+
+### 첫번째 접근
+
+```ts
+type ReplaceAll<S extends string, From extends string, To extends string> = 
+  S extends `${infer before}${From extends '' ? never : From}${infer after}` 
+    ? ReplaceAll<`${before}${To}${after}`, From, To>
+    : S
+```
+
+재귀로 나온 답을 다시 replace 거는 동작을 설정했다
+
+```ts
+  Expect<Equal<ReplaceAll<'foobarfoobar', 'ob', 'b'>, 'fobarfobar'>>,
+  Expect<Equal<ReplaceAll<'foboorfoboar', 'bo', 'b'>, 'foborfobar'>>,
+```
+
+그럴 경우 이 케이스들이
+
+교체한 단어들이 다시 교체해야할 단어들에 적용이 되어서 원하던 동작이 되지 않았다
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type ReplaceAll<S extends string, From extends string, To extends string> = 
+  S extends `${infer before}${From extends '' ? never : From}${infer after}` 
+    ? `${before}${To}${ReplaceAll<after, From, To>}`
+    : S
+```
+
+앞에서부터 진행되기 때문에 뒷부분에 재귀를 걸고 뒷부분 재귀를 건 후에 앞부분을 다시 합치는 방식으로 수정했더니 모든 케이스를 통과했다.
+
