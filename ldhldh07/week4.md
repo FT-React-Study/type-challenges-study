@@ -296,7 +296,7 @@ T전체의 타입을 추론하기 때문에 readonly 리터럴 타입이 아닌 
 
 
 
-#### { [K in keyof T]: [T]K }
+#### { [K in keyof T]: T[K] }
 
 include에서 봤던 매핑된 타입 형식이다
 
