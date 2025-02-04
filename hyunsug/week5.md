@@ -51,6 +51,21 @@ type Replace<
 
 ## [Medium-119-ReplaceAll](./medium/119-replace-all.ts)
 
+```ts
+type ReplaceAll<
+  S extends string,
+  From extends string,
+  To extends string
+> = From extends ""
+  ? S
+  : S extends `${infer Pre}${From}${infer Rest}`
+  ? `${Pre}${To}${ReplaceAll<Rest, From, To>}`
+  : S;
+```
+
+- Replace와 동일한 과정을 따른다.
+- 단, Replace를 거친 후 남은 From, To의 교체도 일어나야 하므로 ReplaceAll을 Rest에 대해 재귀적으로 호출한다.
+
 ## [Medium-191-AppendArgument](./medium/191-append-argument.ts)
 
 ## [Medium-296-Permutation](./medium/296-permutation.ts)
