@@ -31,6 +31,24 @@ function applyStringMapping(symbol: Symbol, str: string) {
 
 ## [Medium-116-Replace](./medium/116-replace.ts)
 
+```ts
+type Replace<
+  S extends string,
+  From extends string,
+  To extends string
+> = From extends ""
+  ? S
+  : S extends `${infer Pre}${From}${infer Rest}`
+  ? `${Pre}${To}${Rest}`
+  : S;
+```
+
+- 문자열 S에서 From을 To로 치환한다.
+- From이 빈 문자열인 경우 S를 그대로 반환한다.
+- S가 From을 포함하지 않는 경우에도 S를 그대로 반환한다.
+- From은 한번만, 앞에서부터 찾아 교체한다.
+- `infer Pre`를 통해 From의 앞 문자열을, `infer Rest`를 통해 From의 뒷 문자열을 추출한다.
+
 ## [Medium-119-ReplaceAll](./medium/119-replace-all.ts)
 
 ## [Medium-191-AppendArgument](./medium/191-append-argument.ts)
