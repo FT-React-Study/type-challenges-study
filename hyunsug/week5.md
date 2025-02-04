@@ -68,6 +68,22 @@ type ReplaceAll<
 
 ## [Medium-191-AppendArgument](./medium/191-append-argument.ts)
 
+```ts
+type FunctionBase = (...args: any[]) => any;
+
+type AppendArgument<Fn extends FunctionBase, NewArgument> = Fn extends (
+  ...args: infer Args
+) => infer Return
+  ? (...args: readonly [...Args, x: NewArgument]) => Return
+  : never;
+```
+
+- extends에 사용할 함수 타입을 정의했다. (`Fn extends (...args: any[]) => any`를 적으면 너무 길어져서)
+- 여기에서 `Fn extends FunctionBase`를 통해 Fn은 함수 타입이어야만 한다는 것을 명시한다.
+- `Fn extends (...args: infer Args) => infer Return`을 통해 Fn의 기존 Parameters와 Return Type을 추출한다.
+- `(...args: readonly [...Args, x: NewArgument]) => Return`을 통해 NewArgument가 Parameters의 마지막에, x라는 이름으로 추가된 타입을 갖는 새로운 함수 타입을 반환한다.
+- x를 부여한 이유는 예시가 x라는 key로 parameter 타입을 지정하고 있었기 때문이며, 따로 부여하지 않으면 arg_2로 생성된다.
+
 ## [Medium-296-Permutation](./medium/296-permutation.ts)
 
 ## [Medium-298-LengthOfString](./medium/298-length-of-string.ts)
