@@ -305,3 +305,72 @@ type AppendArgument<Fn extends Function, A> = Fn extends (...args: infer Args) =
 ```
 
 스프레드 연산자로 배열 내부 값들이 복사해서 들어가도록 했다
+
+
+
+
+
+## 296 - Permutation
+
+주어진 유니언 타입을 순열 배열로 바꾸는 Permutation 타입을 구현하세요.
+
+```
+type perm = Permutation<'A' | 'B' | 'C'>; // ['A', 'B', 'C'] | ['A', 'C', 'B'] | ['B', 'A', 'C'] | ['B', 'C', 'A'] | ['C', 'A', 'B'] | ['C', 'B', 'A']
+```
+
+```ts
+type cases = [
+  Expect<Equal<Permutation<'A'>, ['A']>>,
+  Expect<Equal<Permutation<'A' | 'B' | 'C'>, ['A', 'B', 'C'] | ['A', 'C', 'B'] | ['B', 'A', 'C'] | ['B', 'C', 'A'] | ['C', 'A', 'B'] | ['C', 'B', 'A']>>,
+  Expect<Equal<Permutation<'B' | 'A' | 'C'>, ['A', 'B', 'C'] | ['A', 'C', 'B'] | ['B', 'A', 'C'] | ['B', 'C', 'A'] | ['C', 'A', 'B'] | ['C', 'B', 'A']>>,
+  Expect<Equal<Permutation<boolean>, [false, true] | [true, false]>>,
+  Expect<Equal<Permutation<never>, []>>,
+]
+```
+
+
+
+### 문제 분석
+
+유니언타입의 타입을 순열의 방식을 적용해서 배열들의 유니온으로 반환한다.
+
+
+
+### 접근
+
+재귀와 extends를 이용해서 유니온 내의 타입들을 반복하려고 했다.
+
+유니온 타입과 배열을
+
+
+
+### 정답
+
+```ts
+type Permutation<T, Possible = T> =  
+  [T] extends [never] 
+    ? [] 
+    : T extends Possible
+      ? [T, ...Permutation<Exclude<Possible, T>>] 
+      : never;
+```
+
+T와 T와 같은 A를 제네릭에 넣었다.
+
+T와 조건문을 함께 걸 T와 같은 타입이 하나 있어야 한다고는 생각했지만 제네릭의 default 값을 이용해서 사용하는 방식은 이 정답을 통해 익혔다.
+
+
+
+#### [T] extends [never]
+
+재귀를 종료시키면서 동시에 재귀에 마지막 단계에 원하는 동작을 하기 위해서는 , T
+
+가능한 옵션들에 할당하여 분배법칙을 통해 모든 경우의 수를 테스트 하는 방식은 이해했지만 위 문법은 생소했다.
+
+
+
+이 조건식의 기능은 재귀를 종료시켜주는 것이다.  Exclude<Possible, T>가 never가 되면 재귀를 종료 해야하며 이때 T가 [never]인지 판단해야 한다.
+
+근데 T가 never인지 판단한때 T는 유니온 타입이기 때문에 분배법칙을 하고 그러면 재귀의 올바른 동작을 하지 못한다.
+
+그렇게 때문에 [T]로 만들어서 분배 법칙이 일어나지 않고 비교할 수 있도록 해주는 식이다.
