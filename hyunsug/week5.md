@@ -87,8 +87,9 @@ type AppendArgument<Fn extends FunctionBase, NewArgument> = Fn extends (
 ## [Medium-296-Permutation](./medium/296-permutation.ts)
 
 **다시 보고 이해할 필요가 있음**
-[참고1](https://github.com/type-challenges/type-challenges/issues/614)
+[참고1 - recommended answer](https://github.com/type-challenges/type-challenges/issues/614)
 [참고2](https://ghaiklor.github.io/type-challenges-solutions/en/medium-permutation.html)
+[참고3 - js 기반의 permutation 함수를 통한 이해해](https://github.com/junghyunbak/junghyunbak/issues/80)
 
 - 주어진 유니언에 기반하여 "순열"의 유니언을 만드는 타입으로, 주어진 유니언의 모든 요소를 순서를 바꿔가며 조합한 것을 유니언으로 반환한다.
 - 유니언 타입의 평가 시 분배되어 평가된다는 점을 이해하는 것이 중요했다
