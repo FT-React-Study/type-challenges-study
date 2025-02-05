@@ -374,3 +374,43 @@ T와 조건문을 함께 걸 T와 같은 타입이 하나 있어야 한다고는
 근데 T가 never인지 판단한때 T는 유니온 타입이기 때문에 분배법칙을 하고 그러면 재귀의 올바른 동작을 하지 못한다.
 
 그렇게 때문에 [T]로 만들어서 분배 법칙이 일어나지 않고 비교할 수 있도록 해주는 식이다.
+
+
+
+## 298 - Length of String
+
+`String#length`처럼 동작하는 문자열 리터럴의 길이를 구하세요.
+
+```ts
+type cases = [
+  Expect<Equal<LengthOfString<''>, 0>>,
+  Expect<Equal<LengthOfString<'kumiko'>, 6>>,
+  Expect<Equal<LengthOfString<'reina'>, 5>>,
+  Expect<Equal<LengthOfString<'Sound! Euphonium'>, 16>>,
+]
+```
+
+
+
+### 문제분석
+
+문자열의 길이를 구하여 반환한다
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type LengthOfString<S extends string, array extends Array<any> = []> = 
+  S extends `${infer char}${infer rest}` 
+    ? LengthOfString<rest, [char, ...array]> 
+    : array['length']
+```
+
+문자열을 배열로 바꾼 후에 'length'를 통해서 답을 구했다
+
+문자열을 배열로 바꾸는 것은 extends infer로 한글자씩 재귀 걸고 array라는 제네릭 인자를 통해서 배열로 선언했다.
+
+
+
+그리고 재귀가 종료되면 그때 ['length']를 했다
