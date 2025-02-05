@@ -86,6 +86,39 @@ type AppendArgument<Fn extends FunctionBase, NewArgument> = Fn extends (
 
 ## [Medium-296-Permutation](./medium/296-permutation.ts)
 
+**다시 보고 이해할 필요가 있음**
+[참고1](https://github.com/type-challenges/type-challenges/issues/614)
+[참고2](https://ghaiklor.github.io/type-challenges-solutions/en/medium-permutation.html)
+
+- 주어진 유니언에 기반하여 "순열"의 유니언을 만드는 타입으로, 주어진 유니언의 모든 요소를 순서를 바꿔가며 조합한 것을 유니언으로 반환한다.
+- 유니언 타입의 평가 시 분배되어 평가된다는 점을 이해하는 것이 중요했다
+
+```ts
+type Permutation<T, Original = T> = [T] extends [never]
+  ? []
+  : T extends Original
+  ? [T, ...Permutation<Exclude<Original, T>>]
+  : [];
+```
+
+### `[T] extends [never]`
+
+- 유니언 T가 순수한 `never` 타입인 경우를 평가하기 위한 조건이다.
+- 유니언 T는 분배되어 평가되며, `never` 타입은 분배 시 공집합으로 간주되어 평가에서 제외된다.
+- 따라서, `never` 타입을 명시적으로 평가하기 위해서는 `never` 이전에 평가를 진행하도록 강제해야 한다.
+- 이를 위해 튜플 타입으로 묶어 평가를 진행하도록 한다.
+
+### `Original = T`, `T extends Original`
+
+- 유니언 T는 분배되어 평가된다. 원래는 `T extends infer U` 형태를 통해 유니언의 요소를 이용하려 했다.
+- 하지만 해당 형태는 이미 분배된 유니언의 각 요소가 T가 되어 U는 T와 동일한 타입이 되고,
+- 재귀를 실행하기 위해 Exclude를 실행할 때 분배된 요소 T에서 T를 제거하여 탈출 조건이 된다
+
+- 따라서, 원래 유니언을 보존하고 있는 복사된 제너릭을 추가하는 것이 필요했다.
+- `T extends Original`은 원래 유니언의 요소인 T가 Original(원래 유니언)의 부분 집합인 경우에 성립한다.
+- `[T, ...Permutation<Exclude<Original, T>>]`는 분배된 요소 T를 시작으로 하는 튜플을 생성하며
+- 재귀적으로 원래 유니언에서 분배된 요소 T를 제거하고 나머지 유니언에 대해 다시 Permutation을 실행한다.
+
 ## [Medium-298-LengthOfString](./medium/298-length-of-string.ts)
 
 ```
