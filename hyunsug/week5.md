@@ -121,6 +121,17 @@ type Permutation<T, Original = T> = [T] extends [never]
 
 ## [Medium-298-LengthOfString](./medium/298-length-of-string.ts)
 
+```ts
+type LengthOfString<
+  S extends string,
+  L extends string[] = []
+> = S extends `${infer F}${infer R}`
+  ? LengthOfString<R, [...L, F]>
+  : L["length"];
 ```
 
-```
+- 앞선 296번 문제와 유사하게 추가적인 제너릭을 통해 보존정보를 가지고 재귀를 진행할 수 있는 형태로 구성했다
+- string S를 F와 R(rest)로 나눠 매번 평가된 F를 L에 추가하며 재귀를 진행하고
+- F와 R이 infer로 평가되지 않는 경우 재귀 탈출 조건이 되어 Array L의 length를 반환한다.
+- 한 글자의 문자열이라면 F는 해당 문자열로, R은 빈 문자열이 된다.
+- 하지만 빈 문자열이라면 템플릿 리터럴 패턴 매칭 자체에 실패하여 조건문의 실패조건이 된다.
