@@ -50,3 +50,100 @@ type Flatten<T extends Array<any>> = T extends [infer First, ...infer Rest]
 
 스프레드 연산자와 함께 넣어줬더니 해결이 됐다
 
+
+
+## Append to object
+
+주어진 인터페이스에 새로운 필드를 추가한 object 타입을 구현하세요. 이 타입은 세 개의 인자를 받습니다.
+
+예시:
+
+```ts
+type Test = { id: '1' }
+type Result = AppendToObject<Test, 'value', 4> // expected to be { id: '1', value: 4 }
+```
+
+```ts
+type test1 = {
+  key: 'cat'
+  value: 'green'
+}
+
+type testExpect1 = {
+  key: 'cat'
+  value: 'green'
+  home: boolean
+}
+
+type test2 = {
+  key: 'dog' | undefined
+  value: 'white'
+  sun: true
+}
+
+type testExpect2 = {
+  key: 'dog' | undefined
+  value: 'white'
+  sun: true
+  home: 1
+}
+
+type test3 = {
+  key: 'cow'
+  value: 'yellow'
+  sun: false
+}
+
+type testExpect3 = {
+  key: 'cow'
+  value: 'yellow'
+  sun: false
+  moon: false | undefined
+}
+
+type cases = [
+  Expect<Equal<AppendToObject<test1, 'home', boolean>, testExpect1>>,
+  Expect<Equal<AppendToObject<test2, 'home', 1>, testExpect2>>,
+  Expect<Equal<AppendToObject<test3, 'moon', false | undefined>, testExpect3>>,
+]
+
+```
+
+### 문제 분석
+
+객체에 키와 벨류를 제네릭에 넣어서 합친 객체를 만드는 유틸리티 함수이다
+
+키를 어떻게 인식시킬 것이냐가 관건이듯 하다
+
+
+
+### 첫번째 접근
+
+```ts
+type AppendToObject<T, U, V> = {[P in keyof T]: T[P]} & {[P in keyof U as P extends U ? P : never]: V}
+```
+
+U라는 string을 key로 넣기 위해 시도해봤다
+
+
+
+### 정답
+
+```ts
+type AppendToObject<T, U extends string, V> = {
+  [K in keyof T | U]: K extends keyof T ? T[K] : V;
+};
+```
+
+시도해본 방식 중에 `[K in keyof {...keyof T, U} ]`이런식의 이상한 방식을 시도했었는데, 이를 제대로 구현한 버전이었다.
+
+유니온 타입으로 keyof T 순회에 U를 더해준 다음에 value는 T에 포함된 경우에는 복사 아닌때는 V로 더해준다
+
+```ts
+type AppendToObject<T, U extends string, V> = {
+  [K in keyof T | U]: K extends U ? V : T[K];
+};
+```
+
+이것도 얼핏 똑같아 보이지만 extends의 false 영역에는 변수가 전달이 안되어 틀린 답이다.
+
