@@ -20,7 +20,9 @@
 
 /* _____________ 여기에 코드 입력 _____________ */
 
-type StringToUnion<T extends string> = any
+type StringToUnion<T extends string, Res = never> = T extends `${infer First}${infer Rest}`
+    ? StringToUnion<Rest, Res|First>
+    : Res
 
 /* _____________ 테스트 케이스 _____________ */
 import type { Equal, Expect } from '@type-challenges/utils'
