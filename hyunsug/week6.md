@@ -44,6 +44,15 @@ Equal<{ name: "john"; age: 100 }, { name: "john" } & { age: 100 }>; // => false
 
 ## [Medium-529-Absolute](./medium/529-absolute.ts)
 
+```ts
+type Absolute<T extends number | string | bigint> =
+  `${T}` extends `-${infer NumberString}` ? NumberString : `${T}`;
+```
+
+- 숫자, 문자, bigint 타입을 받아 절대값을 취해 문자열 리터럴 타입을 반환하는 타입이다
+- `${T}`를 이용하여 문자열로 변환하고 이것이 `-${infer NumberString}` 형태인지 확인한다
+- 만약 그렇다면 `NumberString`를 반환하고, 그렇지 않다면 `${T}`를 반환한다
+
 ## [Medium-531-StringToUnion](./medium/531-string-to-union.ts)
 
 ## [Medium-599-Merge](./medium/599-merge.ts)
