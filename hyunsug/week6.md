@@ -55,6 +55,27 @@ type Absolute<T extends number | string | bigint> =
 
 ## [Medium-531-StringToUnion](./medium/531-string-to-union.ts)
 
+```ts
+type StringToUnion<
+  T extends string,
+  U extends string = never
+> = T extends `${infer First}${infer Rest}`
+  ? First | StringToUnion<Rest, U>
+  : U;
+```
+
+- 문자열 T를 재귀적으로 분리하여 유니언 타입으로 반환하는 타입이다
+- `${infer First}${infer Rest}`를 통해 첫 문자와 나머지 문자열을 추출한다
+- U를 never로 설정하여 최종적으로 StringToUnion<"">의 결과가 never가 되게 하여 종료조건을 만든다.
+
+```ts
+type StringToUnion<T extends string> = T extends `${infer First}${infer Rest}`
+  ? First | StringToUnion<Rest>
+  : never;
+```
+
+- 하지만 위의 방법은 최종적으로 never를 반환하게 하는것과 동일한 형태로 U가 불필요하다 볼 수 있다.
+
 ## [Medium-599-Merge](./medium/599-merge.ts)
 
 ## [Medium-612-KebabCase](./medium/612-kebab-case.ts)
