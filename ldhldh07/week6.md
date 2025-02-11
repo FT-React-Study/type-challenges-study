@@ -263,3 +263,63 @@ type StringToUnion<T extends string, Result = never> =
 ```
 
 제네릭에 결과값을 넣어두고 infer와 템플릿 리터럴로 문자열 하나씩 재귀로 넣어준다.
+
+
+
+## Merge
+
+두개의 타입을 새로운 타입으로 병합하세요. 두번째 타입의 Key가 첫번째 타입을 덮어씁니다(재정의합니다)
+
+예시:
+
+```ts
+type foo = {
+  name: string
+  age: string
+}
+type coo = {
+  age: number
+  sex: string
+}
+
+type Result = Merge<foo, coo> // expected to be {name: string, age: number, sex: string}
+```
+
+```ts
+type Foo = {
+  a: number
+  b: string
+}
+type Bar = {
+  b: number
+  c: boolean
+}
+
+type cases = [
+  Expect<Equal<Merge<Foo, Bar>, {
+    a: number
+    b: number
+    c: boolean
+  }>>,
+```
+
+### 문제 분석
+
+두개의 객체 타입을 합친다. 이때 겹치는 경우에 뒤에 나오는 타입의 속성 타입으로 override 한다
+
+### 첫번째 접근 - 정답
+
+```ts
+type Merge<F, S> = 
+  {
+    [P in keyof F | keyof S]: 
+      P extends keyof S 
+        ? S[P] 
+        : P extends keyof F
+          ? F[P]
+          : never
+  }   
+```
+
+F와 S의 keyof 타입을 map 해서 value값에는 각각 포함됐는지 확인하되 S를 먼저 확인한다.
+
