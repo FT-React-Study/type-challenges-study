@@ -147,3 +147,82 @@ type AppendToObject<T, U extends string, V> = {
 
 이것도 얼핏 똑같아 보이지만 extends의 false 영역에는 변수가 전달이 안되어 틀린 답이다.
 
+
+
+## Absolute
+
+number, string, 혹은 bigint을 받는 `Absolute` 타입을 만드세요. 출력은 양수 문자열이어야 합니다.
+
+예시:
+
+```ts
+type Test = -100
+type Result = Absolute<Test> // expected to be "100"
+```
+
+```ts
+type cases = [
+  Expect<Equal<Absolute<0>, '0'>>,
+  Expect<Equal<Absolute<-0>, '0'>>,
+  Expect<Equal<Absolute<10>, '10'>>,
+  Expect<Equal<Absolute<-5>, '5'>>,
+  Expect<Equal<Absolute<'0'>, '0'>>,
+  Expect<Equal<Absolute<'-0'>, '0'>>,
+  Expect<Equal<Absolute<'10'>, '10'>>,
+  Expect<Equal<Absolute<'-5'>, '5'>>,
+  Expect<Equal<Absolute<-1_000_000n>, '1000000'>>,
+  Expect<Equal<Absolute<9_999n>, '9999'>>,
+]
+```
+
+
+
+### 첫번째 접근
+
+```ts
+type Absolute<T extends number | string | bigint> = 
+  T extends `${infer first}${infer Rest}` 
+    ? first extends '-' 
+      ? Rest 
+      : T 
+    : T
+```
+
+문자열인 경우 첫번째 문자열을 infer로 -로 추론하는 방식을 썼다.
+
+그런데 타입이 숫자 타입인 경우 그걸 문자로 받아야 했다.
+
+
+
+### 두번째 접근
+
+#### `${T}` 
+
+타입스크립트에서는 템플릿 리터럴에 number, bigunt, boolean, undefined, null과 같은 타입을 넣을 경우
+
+이를 문자열로 변환해준다
+
+
+
+```ts
+type Absolute<T extends number | string | bigint> = 
+  `${T}` extends `${infer first}${infer Rest}` 
+    ? first extends '-' 
+      ? Rest 
+      : `${T}` 
+    : `${T}`
+```
+
+
+
+다른 정답	
+
+```ts
+type Absolute<T extends number | string | bigint> = 
+  `${T}` extends `-${infer Abs}` 
+    ? Abs 
+    : `${T}`
+```
+
+문자열을 떼고 그게 '-'인지 두번 할필요가 없이 사실 이렇게 하는 방식이 더 자연스럽고 정확했다.
+
