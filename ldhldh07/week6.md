@@ -226,3 +226,40 @@ type Absolute<T extends number | string | bigint> =
 
 문자열을 떼고 그게 '-'인지 두번 할필요가 없이 사실 이렇게 하는 방식이 더 자연스럽고 정확했다.
 
+
+
+## String to Union
+
+문자열 인수를 입력받는 String to Union 유형을 구현하세요. 출력은 입력 문자열의 Union type이어야 합니다.
+
+예시:
+
+```ts
+type Test = "123"
+type Result = StringToUnion<Test> // expected to be "1" | "2" | "3"
+```
+
+```ts
+ type cases = [
+  Expect<Equal<StringToUnion<''>, never>>,
+  Expect<Equal<StringToUnion<'t'>, 't'>>,
+  Expect<Equal<StringToUnion<'hello'>, 'h' | 'e' | 'l' | 'l' | 'o'>>,
+  Expect<Equal<StringToUnion<'coronavirus'>, 'c' | 'o' | 'r' | 'o' | 'n' | 'a' | 'v' | 'i' | 'r' | 'u' | 's'>>,
+```
+
+### 문제 분석
+
+문자열을 하나씩 유니온으로 변환한다
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type StringToUnion<T extends string, Result = never> = 
+	T extends `${infer First}${infer Rest}` 
+		? StringToUnion<Rest, First | Result> 
+		: Result
+```
+
+제네릭에 결과값을 넣어두고 infer와 템플릿 리터럴로 문자열 하나씩 재귀로 넣어준다.
