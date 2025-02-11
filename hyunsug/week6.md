@@ -78,4 +78,16 @@ type StringToUnion<T extends string> = T extends `${infer First}${infer Rest}`
 
 ## [Medium-599-Merge](./medium/599-merge.ts)
 
+```ts
+type Merge<T, U> = {
+  [key in keyof T | keyof U]: key extends keyof U
+    ? U[key]
+    : key extends keyof T
+    ? T[key]
+    : never;
+};
+```
+
+- Mapped Type을 이용하는 방식으로 후행하는 U의 키를 우선하여 value의 타입을 결정한다.
+
 ## [Medium-612-KebabCase](./medium/612-kebab-case.ts)
