@@ -264,6 +264,15 @@ type StringToUnion<T extends string, Result = never> =
 
 제네릭에 결과값을 넣어두고 infer와 템플릿 리터럴로 문자열 하나씩 재귀로 넣어준다.
 
+### 다른 정답
+
+```ts
+type StringToUnion<T extends string> = 
+  T extends `${infer First}${infer Rest}` 
+    ? First | StringToUnion<Rest>
+    : never
+```
+
 
 
 ## Merge
@@ -323,3 +332,99 @@ type Merge<F, S> =
 
 F와 S의 keyof 타입을 map 해서 value값에는 각각 포함됐는지 확인하되 S를 먼저 확인한다.
 
+
+
+## kebabcase
+
+`camelCase`나 `PascalCase`를 `kebab-case` 문자열로 수정하세요.
+
+```
+FooBarBaz` -> `foo-bar-baz
+```
+
+예시:
+
+```ts
+type FooBarBaz = KebabCase<"FooBarBaz">
+const foobarbaz: FooBarBaz = "foo-bar-baz"
+
+type DoNothing = KebabCase<"do-nothing">
+const doNothing: DoNothing = "do-nothing"
+```
+
+```ts
+type cases = [
+  Expect<Equal<KebabCase<'FooBarBaz'>, 'foo-bar-baz'>>,
+  Expect<Equal<KebabCase<'fooBarBaz'>, 'foo-bar-baz'>>,
+  Expect<Equal<KebabCase<'foo-bar'>, 'foo-bar'>>,
+  Expect<Equal<KebabCase<'foo_bar'>, 'foo_bar'>>,
+  Expect<Equal<KebabCase<'Foo-Bar'>, 'foo--bar'>>,
+  Expect<Equal<KebabCase<'ABC'>, 'a-b-c'>>,
+  Expect<Equal<KebabCase<'-'>, '-'>>,
+  Expect<Equal<KebabCase<''>, ''>>,
+  Expect<Equal<KebabCase<'😎'>, '😎'>>,
+]
+```
+
+
+
+### 문제 분석
+
+문자열을 케밥케이스로 바꾸어 리턴한다.
+
+
+
+### 첫번째 접근
+
+대문자인 경우 작대기랑 소문자로 바꾸는 방식으로 생각했다
+
+```ts
+type KebabCase<S> = S extends `${infer First}${infer Rest}` 
+  ? First extends Uppercase<string> 
+    ? `-${Lowercase<First>}${KebabCase<Rest>}` 
+    : `${First}${KebabCase<Rest>}` 
+  : S
+```
+
+이 경우 맨 앞만 소문자로 변경하는 예외 처리가 생각보다 까다로웠다.
+
+
+
+### 두번째 접근
+
+```ts
+type KebabCase<S extends string, Result extends string = ''> = 
+  S extends `${infer First}${infer Rest}` 
+    ? First extends Uppercase<string>
+      ? Result extends ''
+        ? KebabCase<Rest, `${Lowercase<First>}`>
+        : First extends '-' | '_'
+          ? KebabCase<Rest, `${Result}${First}`>
+          : KebabCase<Rest, `${Result}-${Lowercase<First>}`>
+      : KebabCase<Rest, `${Result}${First}`>
+    : Result;
+```
+
+Result 값을 설정해서
+
+Result가 비어있을때는 그냥 소문자로만 바꾸도록 했다.
+
+
+
+근데 이경우 이모지 처리가 안됐다
+
+
+
+### 정답
+
+``` ts
+type KebabCase<S> = S extends `${infer First}${infer Rest}`
+  ? Rest extends Uncapitalize<Rest>
+    ? `${Lowercase<First>}${KebabCase<Rest>}`
+    : `${Lowercase<First>}-${KebabCase<Rest>}` 
+  : S;
+```
+
+앞 글자만 extends할생각했는데 뒤 단어들로 하는 것이 더 깔끔했다
+
+특히 그 방식이 해당 단어에 유틸리티 타입을 건 후 기존 단어에서 달라지는지 확인하는 방식이라 이런 방식도 있구나 싶었다
