@@ -91,3 +91,80 @@ type Merge<T, U> = {
 - Mapped Type을 이용하는 방식으로 후행하는 U의 키를 우선하여 value의 타입을 결정한다.
 
 ## [Medium-612-KebabCase](./medium/612-kebab-case.ts)
+
+```ts
+type ConcatWithHyphen<T extends string[]> = T extends []
+  ? ""
+  : T extends [infer First extends string, ...infer Rest extends string[]]
+  ? Rest extends []
+    ? `${First}`
+    : `${First}-${ConcatWithHyphen<Rest>}`
+  : never;
+
+type KebabCase<
+  T extends string,
+  Temp extends string = "",
+  Parts extends string[] = []
+> = T extends `${infer First}${infer Rest}`
+  ? First extends Uppercase<First>
+    ? Temp extends ""
+      ? KebabCase<Rest, Lowercase<First>, Parts>
+      : KebabCase<Rest, Lowercase<First>, [...Parts, `${Temp}`]>
+    : KebabCase<Rest, `${Temp}${First}`, Parts>
+  : ConcatWithHyphen<[...Parts, Temp]>;
+```
+
+- 문자열 T를 재귀적으로 분리하여 마지막에 합치는 형태를 고안했던 첫번재 풀이
+- Temp에 대문자로 시작하는 문자열을 담고, Parts에 다음 대문자를 만났을 때 그 Temp를 넣은 후 Temp를 비우는 형태의 순서를 취하게 했다.
+- 이 방식은 이모지를 만났을 때와 do-nothing과 같이 소문자만으로 이루어지면서 -를 문자열 중간에 가지는 경우 문제가 있었다.
+
+```ts
+type UppercaseLetter = "A" | ... | "Z" // A부터 Z까지의 알파벳 대문자
+
+type ConcatWithHyphen<T extends string[]> = // 위와 동일
+
+type KebabCase<
+  T extends string,
+  Temp extends string = "",
+  Parts extends string[] = []
+> = T extends `${infer First}${infer Rest}`
+  ? First extends UppercaseLetter
+    ? Temp extends ""
+      ? KebabCase<Rest, Lowercase<First>, Parts>
+      : KebabCase<Rest, Lowercase<First>, [...Parts, `${Temp}`]>
+    : KebabCase<Rest, `${Temp}${First}`, Parts>
+  : ConcatWithHyphen<[...Parts, Temp]>;
+```
+
+- `Uppercase<First>`가 아닌 UppercaseLetter 유니언과 비교하여 대문자인 경우에 필터링을 진행하도록 했다.
+- 이모지를 만날때나, 특수문자를 만날 때 `${Temp}${First}`로 진행하게 된다.
+
+```ts
+type KebabCase<T extends string> = T extends `${infer First}${infer Rest}`
+  ? Rest extends Uncapitalize<Rest>
+    ? `${Uncapitalize<First>}${KebabCase<Rest>}`
+    : `${Uncapitalize<First>}-${KebabCase<Rest>}`
+  : T;
+```
+
+- 유틸리티 타입 `Uncapitalize`를 이용하는 방법
+- `Uncapitalize`는 문자열의 첫 문자를 소문자로 변경하는 타입이다
+- 이 타입을 이용하여 문자열을 분리하고, 첫 문자를 소문자로 변경하여 재귀적으로 진행한다.
+- 소문자로 변경한 후 나머지가 소문자로 이루어져 있는지 확인하고, 그렇다면 그냥 붙이고, 아니라면 하이픈을 붙인다.
+
+- 이모지는 왜 `"�-�"`로 분해가 되었을까?
+- [Emojis in JavaScript](https://thekevinscott.com/emojis-in-javascript/)
+
+### Emojis in JavaScript
+
+- **이모지의 내부 구성**
+
+  - 실제로 하나의 문자처럼 보이지만, 내부적으로는 **서로게이트 페어 (surrogate pairs)**, 즉 두 개의 UTF-16 코드 유닛으로 이루어짐.
+
+- **Template Literal Type 분해 이슈**
+
+  - `${infer First}${infer Rest}`를 사용하면, 이모지의 두 코드 유닛이 각각 분리되어 매칭됨.
+
+- **결합 시 하이픈 문제**
+  - 분리된 코드 유닛들을 하이픈(`-`)으로 연결하는 로직이 적용되면,
+  - 원래 하나의 이모지가 "코드 유닛-코드 유닛" 형태로 결합되어 예상과 다른 결과가 나타남.
