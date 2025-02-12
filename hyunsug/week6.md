@@ -161,6 +161,18 @@ type KebabCase<T extends string> = T extends `${infer First}${infer Rest}`
 
   - 실제로 하나의 문자처럼 보이지만, 내부적으로는 **서로게이트 페어 (surrogate pairs)**, 즉 두 개의 UTF-16 코드 유닛으로 이루어짐.
 
+  - 예를 들어, 😎 이모지는 실제로는 두 개의 유닛으로 이루어짐:
+
+    - 첫 번째 유닛: `0xD83D`
+    - 두 번째 유닛: `0xDE0E`
+
+```js
+const a = "😎".charCodeAt(0); // 55357
+const b = "😎".charCodeAt(1); // 56806
+
+const emoji = String.fromCharCode(a, b); // 😎
+```
+
 - **Template Literal Type 분해 이슈**
 
   - `${infer First}${infer Rest}`를 사용하면, 이모지의 두 코드 유닛이 각각 분리되어 매칭됨.
@@ -168,3 +180,7 @@ type KebabCase<T extends string> = T extends `${infer First}${infer Rest}`
 - **결합 시 하이픈 문제**
   - 분리된 코드 유닛들을 하이픈(`-`)으로 연결하는 로직이 적용되면,
   - 원래 하나의 이모지가 "코드 유닛-코드 유닛" 형태로 결합되어 예상과 다른 결과가 나타남.
+
+```
+
+```
