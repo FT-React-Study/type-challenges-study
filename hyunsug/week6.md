@@ -168,7 +168,7 @@ type KebabCase<T extends string> = T extends `${infer First}${infer Rest}`
 
 ```js
 const a = "😎".charCodeAt(0); // 55357
-const b = "😎".charCodeAt(1); // 56806
+const b = "😎".charCodeAt(1); // 56846
 
 const emoji = String.fromCharCode(a, b); // 😎
 ```
