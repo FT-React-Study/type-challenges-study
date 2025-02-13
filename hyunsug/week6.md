@@ -149,6 +149,7 @@ type KebabCase<T extends string> = T extends `${infer First}${infer Rest}`
 
 - 유틸리티 타입 `Uncapitalize`를 이용하는 방법
 - `Uncapitalize`는 문자열의 첫 문자를 소문자로 변경하는 타입이다
+- `intrinsic`타입인 `Uncapitalize`는 JS 코드를 이용하여 `str[0].toLowerCase() + str.slice(1)` 과 같이 동작한다.
 - 이 타입을 이용하여 문자열을 분리하고, 첫 문자를 소문자로 변경하여 재귀적으로 진행한다.
 - 소문자로 변경한 후 나머지가 소문자로 이루어져 있는지 확인하고, 그렇다면 그냥 붙이고, 아니라면 하이픈을 붙인다.
 
