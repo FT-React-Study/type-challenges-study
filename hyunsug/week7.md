@@ -78,6 +78,14 @@ type AnyOf<T extends any[], Result extends boolean = false> = T extends [
 
 ## [Medium-1042-IsNever](./medium/1042-is-never.ts)
 
+```ts
+type IsNever<T> = [T] extends [never] ? true : false;
+```
+
+- 지난 Week 5의 [`Permutation`](./medium/296-permutation.ts)에서 이용했던 방법
+- `[T]`를 통해 타입 T를 배열 혹은 튜플로 묶어 `never`를 만나 평가를 중단하지 않도록 하고
+- `extends [never]`을 통해 `never` 타입인 경우 true, 그렇지 않은 경우 false를 반환
+
 ## [Medium-1097-IsUnion](./medium/1097-is-union.ts)
 
 ## [Medium-1130-ReplaceKeys](./medium/1130-replace-keys.ts)
