@@ -13,6 +13,69 @@ type Diff<O, O1> = Omit<O & O1, keyof (O | O1)>;
 
 ## [Medium-949-AnyOf](./medium/949-any-of.ts)
 
+- `Python`의 `any()` 함수는 전달된 Iterable의 요소가 하나라도 참인 경우 true를 반환한다.
+
+```ts
+// 시행착오 1
+type FalsyLiteral = 0 | "" | false | [] | {} | undefined | null;
+
+type AnyOf<T extends any[], Result extends boolean = false> = T extends [
+  infer F,
+  ...infer R
+]
+  ? F extends FalsyLiteral
+    ? AnyOf<R, false>
+    : AnyOf<R, true>
+  : Result;
+```
+
+- 누적 처리 오류: 앞에서 true로 처리되었어도, 뒤에서 false로 처리되면 결과가 false로 나오게 됨
+
+```ts
+// 시행착오 2
+type FalsyLiteral = 0 | "" | false | [] | {} | undefined | null;
+
+type AnyOf<T extends any[], Result extends boolean = false> = T extends [
+  infer F,
+  ...infer R
+]
+  ? F extends FalsyLiteral
+    ? Result extends true
+      ? Result
+      : AnyOf<R, false>
+    : AnyOf<R, true>
+  : Result;
+```
+
+- FalsyLiteral의 빈 객체 타입을 처리를 다르게 해야 함
+- `{}` 빈 객체는 타입스크립트에서 거의 모든 값(숫자, 불리언, 문자열 배열 등)을 포함할 수 있는 타입
+
+```ts
+type FalsyLiteral = type FalsyLiteral =
+  | 0
+  | ""
+  | false
+  | []
+  | undefined
+  | null
+  | { [key: keyof any]: never };
+
+type AnyOf<T extends any[], Result extends boolean = false> = T extends [
+  infer F,
+  ...infer R
+]
+  ? F extends FalsyLiteral
+    ? Result extends true
+      ? Result
+      : AnyOf<R, false>
+    : AnyOf<R, true>
+  : Result;
+```
+
+- `{ [key: keyof any]: never }`는 명시적으로 빈 객체를 표현할 수 있는 타입
+- `infer F, ...infer R`형태로 재귀를 통해 처리하며, 순차적으로 요소를 확인하여 FalsyLiteral을 확인하되
+- `Result`가 이미 true인 경우 즉시 반환하도록 처리
+
 ## [Medium-1042-IsNever](./medium/1042-is-never.ts)
 
 ## [Medium-1097-IsUnion](./medium/1097-is-union.ts)
