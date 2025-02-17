@@ -88,6 +88,21 @@ type IsNever<T> = [T] extends [never] ? true : false;
 
 ## [Medium-1097-IsUnion](./medium/1097-is-union.ts)
 
+```ts
+type IsUnion<T, U = T> = T extends any
+  ? [U] extends [T]
+    ? false
+    : true
+  : never;
+```
+
+- `T extends any`는 모든 타입을 평가할 수 있도록 하는 타입 조건
+- `[U] extends [T]`는 컨디셔널에서 분배된 T에 대해 `[U]`를 평가하는 조건
+- 분배된 T가 유니언 타입인 경우 `[U]`는 분배된 `[T]`와 동일한 타입일 수 없어 false가 되고, 그렇지 않은 경우 true가 된다.
+
+- 예시: T가 string | number인 경우
+- `[U] extends [T]`는 `[string | number] extends [string]`, `[string | number] extends [number]`로 분배되어 평가된다.
+
 ## [Medium-1130-ReplaceKeys](./medium/1130-replace-keys.ts)
 
 ## [Medium-1367-RemoveIndexSignature](./medium/1367-remove-index-signature.ts)
