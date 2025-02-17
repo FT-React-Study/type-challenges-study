@@ -269,3 +269,67 @@ extends의 분배 법칙 때문이라고 한다.
 
 
 T에 제네릭으로 never가 들어가는 경우 공집합으로 판단되고 extends가 평가할 타입이 아무것도 없는것으로 되어서 never를 반환한다.
+
+## IsUnion
+
+`T`를 입력으로 받고, `T`가 `Union` 유형으로 확인되는지 여부를 반환하는 `IsUnion`을 구현하세요
+
+예시:
+
+```ts
+type case1 = IsUnion<string> // false
+type case2 = IsUnion<string | number> // true
+type case3 = IsUnion<[string | number]> // false
+```
+
+```	ts
+type cases = [
+  Expect<Equal<IsUnion<string>, false>>,
+  Expect<Equal<IsUnion<string | number>, true>>,
+  Expect<Equal<IsUnion<'a' | 'b' | 'c' | 'd'>, true>>,
+  Expect<Equal<IsUnion<undefined | null | void | ''>, true>>,
+  Expect<Equal<IsUnion<{ a: string } | { a: number }>, true>>,
+  Expect<Equal<IsUnion<{ a: string | number }>, false>>,
+  Expect<Equal<IsUnion<[string | number]>, false>>,
+  // Cases where T resolves to a non-union type.
+  Expect<Equal<IsUnion<string | never>, false>>,
+  Expect<Equal<IsUnion<string | unknown>, false>>,
+  Expect<Equal<IsUnion<string | any>, false>>,
+  Expect<Equal<IsUnion<string | 'a'>, false>>,
+  Expect<Equal<IsUnion<never>, false>>,
+]
+
+```
+
+
+
+### 정답
+
+```ts
+type IsUnion<T, U = T> =  
+  [T] extends [never]
+    ? false
+    : T extends T 
+        ? [U] extends [T] 
+          ? false 
+          : true
+        : false
+```
+
+T extends T의 형태가 사용될거라고는 생각했는데 뭔가 형태가 복잡했다
+
+
+
+T extends T를 했을 때 분배법칙이 일어난다면 T는 해당 유니온의 개별 타입이 된다
+
+그리고 U에는 T유니온의 전체 타입이 되어 extends 되지 못하고 false로 간다
+
+
+
+반면 유니온이 아닌 경우 분배가 되지 않아 [U]와 [T]가 같아서 해당 extends의 true로 판단되고 그런 경우 false를 반환한다
+
+####  [U] extends [T]
+
+U extends T가 아니라 [U] extends [T]를 쓰는 이유도 분배법칙 때문이다
+
+U가 T와 같은지 판단해야 하는데 유니온인 경우 개별적으로 판단해서 true | false같이 (이 경우에) 하나만 true인 유니온을 반환한다.
