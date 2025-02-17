@@ -105,4 +105,15 @@ type IsUnion<T, U = T> = T extends any
 
 ## [Medium-1130-ReplaceKeys](./medium/1130-replace-keys.ts)
 
+```ts
+type ReplaceKeys<U, T, Y extends { [key: keyof any]: any }> = U extends U
+  ? { [K in keyof U]: K extends T ? Y[K & keyof Y] : U[K] }
+  : never;
+```
+
+- `U extends U`는 타입 U가 자기 자신인 경우 true를 반환하며, 이는 유니언 타입인 경우 분배를 유도하는 방식
+- `{ [K in keyof U]: K extends T ? Y[K & keyof Y] : U[K] }`는 타입 U의 모든 키를 순회하며, 키 K가 T와 일치하는 경우 Y의 키로 대체하고, 그렇지 않은 경우 원래 키 K를 유지하는 형태
+- 이 때, `[K & keyof Y]`는 K가 Y에 존재하는 key라면, `Y[K]`타입으로 교체를 진행하고, 그렇지 않은 경우
+- `[K & keyof Y]`는 존재하지 않는 키이므로 `never`로 평가되어, `Y[never]`가 되어 `K: never`로 평가된다.
+
 ## [Medium-1367-RemoveIndexSignature](./medium/1367-remove-index-signature.ts)
