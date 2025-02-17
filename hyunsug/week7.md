@@ -117,3 +117,20 @@ type ReplaceKeys<U, T, Y extends { [key: keyof any]: any }> = U extends U
 - `[K & keyof Y]`는 존재하지 않는 키이므로 `never`로 평가되어, `Y[never]`가 되어 `K: never`로 평가된다.
 
 ## [Medium-1367-RemoveIndexSignature](./medium/1367-remove-index-signature.ts)
+
+```ts
+type RemoveIndexSignature<T> = {
+  [K in keyof T as string extends K
+    ? never
+    : number extends K
+    ? never
+    : symbol extends K
+    ? never
+    : K]: T[K];
+};
+```
+
+- `K`는 `keyof T`에 해당하는 키 값이다
+- `index signature`는 객체 내 반복되는 키-밸류 형태를 나타내기 위해 이용되며, 리터럴 타입이 아닌 일반적인 타입을 이용한다.
+- `PropertyKey`로 이용되는 `string | number | symbol` 타입으로 나타나는 K, 즉 인덱스 시그니처인 K를 제외하기 위해
+- `string extends K`, `number extends K`, `symbol extends K` 조건을 이용하며, 리터럴 타입이 아닌 K를 제외한다.
