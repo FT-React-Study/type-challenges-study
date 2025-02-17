@@ -215,3 +215,57 @@ type AnyOf<T extends readonly any[]> =
 
 `{}` 대신 `{ [K; string]: never }`를 사용하였고 정답이다
 
+
+
+## IsNever
+
+input type으로 `T`를 받는 IsNever type을 구현하세요. 만약 `T`의 유형이 `never`으로 확인되면 `true`를 반환하고 아니면 `false`를 반환합니다
+
+예시:
+
+```ts
+type A = IsNever<never> // expected to be true
+type B = IsNever<undefined> // expected to be false
+type C = IsNever<null> // expected to be false
+type D = IsNever<[]> // expected to be false
+type E = IsNever<number> // expected to be false
+```
+
+```ts
+type cases = [
+  Expect<Equal<IsNever<never>, true>>,
+  Expect<Equal<IsNever<never | string>, false>>,
+  Expect<Equal<IsNever<''>, false>>,
+  Expect<Equal<IsNever<undefined>, false>>,
+  Expect<Equal<IsNever<null>, false>>,
+  Expect<Equal<IsNever<[]>, false>>,
+  Expect<Equal<IsNever<{}>, false>>,
+]
+```
+
+### 첫번째 접근 - 정답
+
+```ts
+type IsNever<T> = [T] extends [never] ? true : false
+```
+
+Permutation에서의 교훈으로 never를 평가하기 위해서는 [T] extends [never]를 해야한다
+
+
+
+#### 조건부 타입에서 never
+
+```ts
+type Test = never extends never ? true : false; // true
+
+type IsNever<T> = T extends never ? true : false;
+type A = IsNever<never>; // never
+```
+
+never가 타입으로 들어갔을때는 true로 반환하지만 제네릭으로 never가 들어갈 경우 never로 반환하는 이유
+
+extends의 분배 법칙 때문이라고 한다.
+
+
+
+T에 제네릭으로 never가 들어가는 경우 공집합으로 판단되고 extends가 평가할 타입이 아무것도 없는것으로 되어서 never를 반환한다.
