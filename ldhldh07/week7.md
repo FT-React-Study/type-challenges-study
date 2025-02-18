@@ -333,3 +333,147 @@ T extends T를 했을 때 분배법칙이 일어난다면 T는 해당 유니온�
 U extends T가 아니라 [U] extends [T]를 쓰는 이유도 분배법칙 때문이다
 
 U가 T와 같은지 판단해야 하는데 유니온인 경우 개별적으로 판단해서 true | false같이 (이 경우에) 하나만 true인 유니온을 반환한다.
+
+
+
+## ReplaceKeys
+
+Union type의 key를 대체하는 ReplaceKeys를 구현하세요. 만약 일부 유형에 해당 key가 존재하지 않는다면 대체하지 않습니다. 타입은 세 개의 인자를 받습니다.
+
+예시:
+
+```ts
+type NodeA = {
+  type: "A"
+  name: string
+  flag: number
+}
+
+type NodeB = {
+  type: "B"
+  id: number
+  flag: number
+}
+
+type NodeC = {
+  type: "C"
+  name: string
+  flag: number
+}
+
+type Nodes = NodeA | NodeB | NodeC
+
+type ReplacedNodes = ReplaceKeys<
+  Nodes,
+  "name" | "flag",
+  { name: number; flag: string }
+> // {type: 'A', name: number, flag: string} | {type: 'B', id: number, flag: string} | {type: 'C', name: number, flag: string} // would replace name from string to number, replace flag from number to string.
+
+type ReplacedNotExistKeys = ReplaceKeys<Nodes, "name", { aa: number }> // {type: 'A', name: never, flag: number} | NodeB | {type: 'C', name: never, flag: number} // would replace name to never
+```
+
+```ts
+type NodeA = {
+  type: 'A'
+  name: string
+  flag: number
+}
+
+type NodeB = {
+  type: 'B'
+  id: number
+  flag: number
+}
+
+type NodeC = {
+  type: 'C'
+  name: string
+  flag: number
+}
+
+type ReplacedNodeA = {
+  type: 'A'
+  name: number
+  flag: string
+}
+
+type ReplacedNodeB = {
+  type: 'B'
+  id: number
+  flag: string
+}
+
+type ReplacedNodeC = {
+  type: 'C'
+  name: number
+  flag: string
+}
+
+type NoNameNodeA = {
+  type: 'A'
+  flag: number
+  name: never
+}
+
+type NoNameNodeC = {
+  type: 'C'
+  flag: number
+  name: never
+}
+
+type Nodes = NodeA | NodeB | NodeC
+type ReplacedNodes = ReplacedNodeA | ReplacedNodeB | ReplacedNodeC
+type NodesNoName = NoNameNodeA | NoNameNodeC | NodeB
+
+type cases = [
+  Expect<Equal<ReplaceKeys<Nodes, 'name' | 'flag', { name: number, flag: string }>, ReplacedNodes>>,
+  Expect<Equal<ReplaceKeys<Nodes, 'name', { aa: number }>, NodesNoName>>,
+]
+```
+
+### 문제 분석
+
+T의 키값을 있는 속성들을 U에 있는 내용으로 바꿔준다
+
+### 첫번째 접근
+
+key값은 override하되 그 값은 U에서 가져오면 된다고 생각했다
+
+```ts
+type ReplaceNode =  {[P in keyof NodeA | 'name'] : P extends 'name' | 'flag' ? { name: number, flag: string }[P] : NodeA[P]} 
+```
+
+그래서 단일 Node에 대해서 해당 로직을 적용해서 원하는 결과를 내는데 성공했다
+
+근데 그걸 유니온 타입에 적용하는 방법이 관건이었고 그냥 extends any로 분배시키는 방식을 해봤다
+
+```ts
+type ReplaceKeys<U, T extends keyof any, Y> = U extends any 
+  ? { [P in keyof U | T as P extends keyof U ? P : never] : P extends keyof Y ? Y[P] : P extends keyof U ? U[P] : never }
+  : never;
+```
+
+이 경우 두번째 케이스에서 Y에 해당 객체가 없음에도 value값이 never가 아닌 기존의 값으로 되는 문제가 있었다
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type ReplaceKeys<U, T extends keyof any, Y> = U extends any 
+  ? {
+      [P in keyof U | T as P extends keyof U 
+        ? P 
+        : never]: P extends T 
+                    ? P extends keyof Y 
+                      ? Y[P] 
+                      : never 
+                    : P extends keyof U 
+                      ? U[P] 
+                      : never;
+    }
+  : never;
+```
+
+경우를 좀더 쪼개고 keyof에 extends해서 해당 변수를 활용하는 방식으로 해결했다.
+
