@@ -21,19 +21,25 @@
 /* _____________ 여기에 코드 입력 _____________ */
 
 // type IsUnion<T, C extends unknown[] = []> = [T] extends [never] ? false : T extends infer First | infer Rest ? IsUnion<Rest, [C, First]> : C['length'] extends 1 ? false : true;
- type Test = IsUnion<'a' | 'b'>
+type Test = IsUnion<"a" | "b">;
 
-type IsUnion<T, E = T> = [T] extends [never] ? false : T extends any ? ([E] extends [T] ? false : true) : never;
+type ToArray<T> = [T] extends [any] ? T[] : never;
+type DistributeToArray<T> = T extends any ? T[] : never;
 
+type IsUnion<T> = [T] extends [never]
+  ? false
+  : ToArray<T> extends DistributeToArray<T>
+  ? false
+  : true;
 
 /* _____________ 테스트 케이스 _____________ */
-import type { Equal, Expect } from '@type-challenges/utils'
+import type { Equal, Expect } from "@type-challenges/utils";
 
 type cases = [
   Expect<Equal<IsUnion<string>, false>>,
   Expect<Equal<IsUnion<string | number>, true>>,
-  Expect<Equal<IsUnion<'a' | 'b' | 'c' | 'd'>, true>>,
-  Expect<Equal<IsUnion<undefined | null | void | ''>, true>>,
+  Expect<Equal<IsUnion<"a" | "b" | "c" | "d">, true>>,
+  Expect<Equal<IsUnion<undefined | null | void | "">, true>>,
   Expect<Equal<IsUnion<{ a: string } | { a: number }>, true>>,
   Expect<Equal<IsUnion<{ a: string | number }>, false>>,
   Expect<Equal<IsUnion<[string | number]>, false>>,
@@ -41,9 +47,9 @@ type cases = [
   Expect<Equal<IsUnion<string | never>, false>>,
   Expect<Equal<IsUnion<string | unknown>, false>>,
   Expect<Equal<IsUnion<string | any>, false>>,
-  Expect<Equal<IsUnion<string | 'a'>, false>>,
-  Expect<Equal<IsUnion<never>, false>>,
-]
+  Expect<Equal<IsUnion<string | "a">, false>>,
+  Expect<Equal<IsUnion<never>, false>>
+];
 
 /* _____________ 다음 단계 _____________ */
 /*
