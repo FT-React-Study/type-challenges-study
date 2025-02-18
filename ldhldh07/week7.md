@@ -477,3 +477,155 @@ type ReplaceKeys<U, T extends keyof any, Y> = U extends any
 
 경우를 좀더 쪼개고 keyof에 extends해서 해당 변수를 활용하는 방식으로 해결했다.
 
+#### Y[P]는 P extends keyof Y가 명시된 상황에서만 사용가능
+
+Y[P]와 같은 속성을 탐색할때 P가 keyof Y에 extends 된다는게 명시된 상황에서만 사용가능하고 이를 위해 extends를 조건부로 걸어서 여러 경우에 다른 extends를 걸어준다
+
+
+
+## Remove Index Signature
+
+객체 유형에서 인덱스 시그니처를 제외하는 `RemoveIndexSignature<T>`를 구현하세요
+
+예시:
+
+```ts
+type Foo = {
+  [key: string]: any
+  foo(): void
+}
+
+type A = RemoveIndexSignature<Foo> // expected { foo(): void }
+```
+
+```ts
+type Foo = {
+  [key: string]: any
+  foo(): void
+}
+
+type Bar = {
+  [key: number]: any
+  bar(): void
+  0: string
+}
+
+const foobar = Symbol('foobar')
+type FooBar = {
+  [key: symbol]: any
+  [foobar](): void
+}
+
+type Baz = {
+  bar(): void
+  baz: string
+}
+
+type cases = [
+  Expect<Equal<RemoveIndexSignature<Foo>, { foo(): void }>>,
+  Expect<Equal<RemoveIndexSignature<Bar>, { bar(): void, 0: string }>>,
+  Expect<Equal<RemoveIndexSignature<FooBar>, { [foobar](): void }>>,
+  Expect<Equal<RemoveIndexSignature<Baz>, { bar(): void, baz: string }>>,
+]
+
+```
+
+### 첫번째 접근
+
+```ts
+type RemoveIndexSignature<T> = {[P in keyof T as P extends [key: any] ? never : P]: T[P]}
+```
+
+P를 매핑할때 as를 통해 필터링을 해야겠다고는 생각했지만 Index Signature의 필터링 하는 방식을 고민해봤다
+
+#### 인덱스 시그니쳐
+
+https://www.typescriptlang.org/docs/handbook/2/objects.html#index-signatures
+
+타입의 속성을 모르더라도 그 키의 타입을 알고 있을 때 그 value를 타입으로 설명할 수 있는 것
+
+```ts
+interface StringArray {
+  [index: number]: string;
+}
+
+const myArray: StringArray = getStringArray();
+const secondItem = myArray[1];
+
+// secondItem의 타입: string
+```
+
+이건 키값이 number일 때 value는 string이라는 타입이다.
+
+```ts
+type Foo = {
+  [key: string]: number
+  foo(): void // 오류
+}
+```
+
+이 형태를 보고 foo()가 string이 아닌데 그러면 인덱스 시그니쳐가 적용되는게 맞나 싶었는데 이건
+
+`foo : () => void`로 형식이 foo 값이 () => void의 형태인 것이다.
+
+```ts
+type Foo = {
+  [key: string]: any
+  2: void
+}
+```
+
+이렇게 했는데도 되는건 number는 내부적으로 string으로 변환될 수 있어서라고 한다
+
+키값이 [key: number]와 같은 인덱스 시그니처의 경우 
+
+```ts
+type Test1 = keyof {[key: string]: any} // string | number
+```
+
+이런식으로 keyof 객체의 타입을 string 전체로 평가한다 (string | number인 이유는 내부적으로 변환이 가능해서)
+
+이를 이용해서
+
+```ts
+type Test2 = string extends keyof {[key: string]: any} ? true : false // true
+```
+
+string와 같은 원시 타입을 인덱스 시그네처의 keyof에 extends 하면 true가 된다
+
+그에 반해
+
+```ts
+type Test1 = keyof {'string': any} // 'string'
+
+type Test3 = string extends keyof {'string': any} ? true : false // false
+```
+
+특정 string을 한 경우 해당 스트링의 리터럴 타입이 타입이 되기 때문에 string을 이 타입에 extends 할 수가 없다
+
+#### key type
+
+속성에 들어갈 수 있는 타입은 string, number, symbol이 세가지 타입이다
+
+### 정답 
+
+```ts
+type RemoveIndexSignature<T> = {
+  [K in keyof T as string extends K 
+    ? never 
+    : number extends K 
+      ? never 
+      : symbol extends K 
+        ? never 
+        : K]: T[K];
+};
+```
+
+그래서 키값과 타입을 extends로 비교해서 제한할때 
+
+각각의 타입들을 으로 키에다가 extends해서 인덱스 시그네처인지 확인한다
+
+
+
+그리고 객체의 키로 쓰일 수 있는건 키타입인 string, number, symbol 뿐이기에 이 세가지를 해준다.
+
