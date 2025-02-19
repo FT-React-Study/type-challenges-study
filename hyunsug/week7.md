@@ -7,8 +7,9 @@ type Diff<O, O1> = Omit<O & O1, keyof (O | O1)>;
 ```
 
 - `O & O1`을 통해 두 객체가 가진 key 값을 모두 포함할 수 있는 객체를 생성하고, 중복되는 key를 제거하는 형태
+- `O & O1`은 객체간의 인터섹션으로, 객체의 인터섹션은 모든 키를 포함하는 객체를 생성한다. (동일한 key가 있다면, 해당 key의 value의 타입은 O[key]와 O1[key]가 intersection된 타입을 갖게 된다.)
 - `keyof (O | O1)`은 `O | O1` 연산을 먼저 수행하고 `keyof` 연산을 수행한다.
-- `O | O1`의 유니언을 형성할 때, keyof를 실행하면 유니언 구성원 모두가 가지고 있는 키만 반환한다.
+- `O | O1`의 유니언에 대해 keyof를 실행하면 `keyof` 연산은 유니언 구성원 모두가 갖는 키만을 반환한다.
 - `keyof O | keyof O1`은 `O`와 `O1`의 키가 모두 포함된 유니언을 반환한다. (모든 key값을 얻고자 할때 사용할 수 있다)
 
 ## [Medium-949-AnyOf](./medium/949-any-of.ts)
@@ -17,7 +18,7 @@ type Diff<O, O1> = Omit<O & O1, keyof (O | O1)>;
 
 ```ts
 // 시행착오 1
-type FalsyLiteral = 0 | "" | false | [] | {} | undefined | null;
+type FalsyLiteral = 0 | '' | false | [] | {} | undefined | null;
 
 type AnyOf<T extends any[], Result extends boolean = false> = T extends [
   infer F,
@@ -33,7 +34,7 @@ type AnyOf<T extends any[], Result extends boolean = false> = T extends [
 
 ```ts
 // 시행착오 2
-type FalsyLiteral = 0 | "" | false | [] | {} | undefined | null;
+type FalsyLiteral = 0 | '' | false | [] | {} | undefined | null;
 
 type AnyOf<T extends any[], Result extends boolean = false> = T extends [
   infer F,
