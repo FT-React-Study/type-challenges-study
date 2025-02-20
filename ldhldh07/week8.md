@@ -58,3 +58,43 @@ type PercentageParser<A extends string> =
 ```
 
 경우의 수로 풀었다
+
+
+
+## Drop Char
+
+Drop a specified char from a string.
+
+For example:
+
+```ts
+type Butterfly = DropChar<' b u t t e r f l y ! ', ' '> // 'butterfly!'
+```
+
+```ts
+type cases = [
+  // @ts-expect-error
+  Expect<Equal<DropChar<'butter fly!', ''>, 'butterfly!'>>,
+  Expect<Equal<DropChar<'butter fly!', ' '>, 'butterfly!'>>,
+  Expect<Equal<DropChar<'butter fly!', '!'>, 'butter fly'>>,
+  Expect<Equal<DropChar<'    butter fly!        ', ' '>, 'butterfly!'>>,
+  Expect<Equal<DropChar<' b u t t e r f l y ! ', ' '>, 'butterfly!'>>,
+  Expect<Equal<DropChar<' b u t t e r f l y ! ', 'b'>, '  u t t e r f l y ! '>>,
+  Expect<Equal<DropChar<' b u t t e r f l y ! ', 't'>, ' b u   e r f l y ! '>>,
+]
+```
+
+
+
+### 정답
+
+```ts
+type DropChar<S, C> = 
+  S extends `${infer First}${infer Rest}`
+    ? First extends C
+      ? DropChar<Rest, C>
+      : `${First}${DropChar<Rest, C>}`
+    : ''
+```
+
+하나씩 체크하고 C일 경우 빼고 재귀하는 방식으로 해결했다.
