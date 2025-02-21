@@ -98,3 +98,91 @@ type DropChar<S, C> =
 ```
 
 하나씩 체크하고 C일 경우 빼고 재귀하는 방식으로 해결했다.
+
+
+
+## MinusOne
+
+Given a number (always positive) as a type. Your type should return the number decreased by one.
+
+For example:
+
+```ts
+type Zero = MinusOne<1> // 0
+type FiftyFour = MinusOne<55> // 54
+```
+
+
+
+### 첫번째 접근
+
+숫자 계산에 대해서 힌트만 받으려고 알아보니 `['length']`를 이용한 방법이 있었다
+
+```ts
+type MinusOne<T extends number, B extends Array<any>= []> = 
+  B['length'] extends T 
+    ? B extends [infer _One, ...infer Rest]
+      ? Rest['length']
+      : 0
+    : MinusOne<T, [0, ...B]>
+```
+
+하지만 이 경우 1000부터는 재귀 횟수 제한이 있는지 안됐다
+
+그래서 1의 자리수만 가지고 하고자 했다
+
+
+
+### 두번째 접근
+
+```ts
+type MinusOne<T extends number, LastNumber extends string = `${T}`, RestNumber extends string = "", B extends any[] = []> =
+  LastNumber extends `${infer First}${infer Rest}`
+    ? Rest extends "" 
+      ? `${B['length']}` extends LastNumber 
+        ? B extends [infer _One, ...infer Rest] 
+          ? `${RestNumber}${Rest['length']}`
+          : 0
+        : MinusOne<T, LastNumber, RestNumber, [0, ...B]> 
+      : MinusOne<T, Rest, `${RestNumber}${First}`, [0, ...B]> 
+    : never;
+```
+
+그래서 T를 마지막 하나와 앞에 부분으로 분리한 다음에 마지막 부분에면 마이너스1을 하고 나중에 앞에 부분을 합쳐줬다
+
+그런데 문제가 그러면 최종 답이 문자열이 되어버린다
+
+
+
+### 세번째 접근
+
+```ts
+type MinusOne<T extends number, LastNumber extends string = `${T}`, RestNumber extends string = "", B extends any[] = []> =
+  LastNumber extends `${infer First}${infer Rest}`
+    ? Rest extends "" 
+      ? `${B['length']}` extends LastNumber 
+        ? B extends [infer _One, ...infer Rest] 
+          ? `${RestNumber}${Rest['length']}` extends `${infer N extends number}` 
+            ? N 
+            : never
+          : 0
+        : MinusOne<T, LastNumber, RestNumber, [0, ...B]> 
+      : MinusOne<T, Rest, `${RestNumber}${First}`, [0, ...B]> 
+    : never;
+```
+
+#### 문자를 숫자로 바꾸는 방식
+
+```ts
+type ToNumber<S extends string> = S extends `${infer N extends number}` ? N : never;
+```
+
+이런방식이 있었다
+
+근데 이렇게 해도 0의 처리 문제나 숫자가 큰 마지막 두개의 케이스는 안됐다
+
+
+
+### 정답 확인
+
+정답을 확인해봤는데 자세히 이해할 필요는 없어보여서 그냥 읽어만 봤다
