@@ -8,8 +8,8 @@ type Diff<O, O1> = Omit<O & O1, keyof (O | O1)>;
 
 - `O & O1`을 통해 두 객체가 가진 key 값을 모두 포함할 수 있는 객체를 생성하고, 중복되는 key를 제거하는 형태
 - `O & O1`은 객체간의 인터섹션으로, 객체의 인터섹션은 모든 키를 포함하는 객체를 생성한다. (동일한 key가 있다면, 해당 key의 value의 타입은 O[key]와 O1[key]가 intersection된 타입을 갖게 된다.)
-- `keyof (O | O1)`은 `O | O1` 연산을 먼저 수행하고 `keyof` 연산을 수행한다.
-- `O | O1`의 유니언에 대해 keyof를 실행하면 `keyof` 연산은 유니언 구성원 모두가 갖는 키만을 반환한다.
+- `keyof (O | O1)`은 `O | O1` 연산을 먼저 수행하고 `keyof` 연산을 수행하며,
+- `keyof` 연산은 유니언 타입에 대해 실행되면, 유니언 구성원이 공통으로 갖는 키만을 반환한다.
 - `keyof O | keyof O1`은 `O`와 `O1`의 키가 모두 포함된 유니언을 반환한다. (모든 key값을 얻고자 할때 사용할 수 있다)
 
 ## [Medium-949-AnyOf](./medium/949-any-of.ts)
@@ -18,7 +18,7 @@ type Diff<O, O1> = Omit<O & O1, keyof (O | O1)>;
 
 ```ts
 // 시행착오 1
-type FalsyLiteral = 0 | '' | false | [] | {} | undefined | null;
+type FalsyLiteral = 0 | "" | false | [] | {} | undefined | null;
 
 type AnyOf<T extends any[], Result extends boolean = false> = T extends [
   infer F,
@@ -34,7 +34,7 @@ type AnyOf<T extends any[], Result extends boolean = false> = T extends [
 
 ```ts
 // 시행착오 2
-type FalsyLiteral = 0 | '' | false | [] | {} | undefined | null;
+type FalsyLiteral = 0 | "" | false | [] | {} | undefined | null;
 
 type AnyOf<T extends any[], Result extends boolean = false> = T extends [
   infer F,
@@ -52,7 +52,7 @@ type AnyOf<T extends any[], Result extends boolean = false> = T extends [
 - `{}` 빈 객체는 타입스크립트에서 거의 모든 값(숫자, 불리언, 문자열 배열 등)을 포함할 수 있는 타입
 
 ```ts
-type FalsyLiteral = type FalsyLiteral =
+type FalsyLiteral =
   | 0
   | ""
   | false
@@ -97,12 +97,16 @@ type IsUnion<T, U = T> = T extends any
   : never;
 ```
 
-- `T extends any`는 모든 타입을 평가할 수 있도록 하는 타입 조건
-- `[U] extends [T]`는 컨디셔널에서 분배된 T에 대해 `[U]`를 평가하는 조건
-- 분배된 T가 유니언 타입인 경우 `[U]`는 분배된 `[T]`와 동일한 타입일 수 없어 false가 되고, 그렇지 않은 경우 true가 된다.
+- `T extends any`는 유니언 타입에 대해 분배 법칙을 적용하기 위한 조건
+- `[U]`는 원본 타입을 보존하고 있으며, `[T]`는 분배된 개별 타입
+- 유니언 타입이 아닌 경우: `[U] extends [T]`가 항상 true가 되어 false를 반환
+- 유니언 타입인 경우: 분배된 `T`의 개별 타입과 원본 `U`를 비교할 때 `[U] extends [T]`가 false가 되어 true를 반환
 
-- 예시: T가 string | number인 경우
-- `[U] extends [T]`는 `[string | number] extends [string]`, `[string | number] extends [number]`로 분배되어 평가된다.
+- 예시: T가 `string | number`인 경우
+  - T는 `string`과 `number`로 분배되고고
+  - `[string | number] extends [string]`은 `false`
+  - `[string | number] extends [number]`은 `false`
+  - 따라서 `true`를 반환하여 유니언 타입임을 판별한다
 
 ## [Medium-1130-ReplaceKeys](./medium/1130-replace-keys.ts)
 
