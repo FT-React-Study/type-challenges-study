@@ -234,3 +234,51 @@ type PickByType<T, U> = {
 
 as의 일반적인 사용을 통해 정답을 작성했다.
 
+
+
+## StartsWith
+
+Implement `StartsWith<T, U>` which takes two exact string types and returns whether `T` starts with `U`
+
+For example
+
+```ts
+type a = StartsWith<'abc', 'ac'> // expected to be false
+type b = StartsWith<'abc', 'ab'> // expected to be true
+type c = StartsWith<'abc', 'abcd'> // expected to be false
+```
+
+```ts
+type cases = [
+  Expect<Equal<StartsWith<'abc', 'ac'>, false>>,
+  Expect<Equal<StartsWith<'abc', 'ab'>, true>>,
+  Expect<Equal<StartsWith<'abc', 'abc'>, true>>,
+  Expect<Equal<StartsWith<'abc', 'abcd'>, false>>,
+  Expect<Equal<StartsWith<'abc', ''>, true>>,
+  Expect<Equal<StartsWith<'abc', ' '>, false>>,
+  Expect<Equal<StartsWith<'', ''>, true>>,
+]
+```
+
+### 문제분석
+
+문자열 T, U가 있을 때 T의 앞부분이 U의 문자열로 이루어질 때 true를 반환한다. 
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type StartsWith<T extends string, U extends string> = 
+  U extends `${infer FirstOfU}${infer RestOfU}` 
+    ? T extends `${infer FirstOfT}${infer RestOfT}`
+      ? FirstOfU extends FirstOfT
+        ? StartsWith<RestOfT, RestOfU>
+        : false
+      : false
+    : true
+```
+
+U랑 T를 돌면서 비교해서 맞으면 재귀로 다음 단어 비교하는 방식
+
+T의 순회가 먼저 끝나면 false U의 순회가 끝나면 true
