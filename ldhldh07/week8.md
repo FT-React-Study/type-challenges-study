@@ -282,3 +282,47 @@ type StartsWith<T extends string, U extends string> =
 U랑 T를 돌면서 비교해서 맞으면 재귀로 다음 단어 비교하는 방식
 
 T의 순회가 먼저 끝나면 false U의 순회가 끝나면 true
+
+
+
+## EndsWith
+
+Implement `EndsWith<T, U>` which takes two exact string types and returns whether `T` ends with `U`
+
+For example:
+
+```ts
+type a = EndsWith<'abc', 'bc'> // expected to be true
+type b = EndsWith<'abc', 'abc'> // expected to be true
+type c = EndsWith<'abc', 'd'> // expected to be false
+```
+
+```ts
+type cases = [
+  Expect<Equal<EndsWith<'abc', 'bc'>, true>>,
+  Expect<Equal<EndsWith<'abc', 'abc'>, true>>,
+  Expect<Equal<EndsWith<'abc', 'd'>, false>>,
+  Expect<Equal<EndsWith<'abc', 'ac'>, false>>,
+  Expect<Equal<EndsWith<'abc', ''>, true>>,
+  Expect<Equal<EndsWith<'abc', ' '>, false>>,
+]
+```
+
+### 문제 분석
+
+문자열 T, U가 있을떄 U가 T 문자열의 뒷 부분에 포함되면 true를 아니면 false를 반환한다.
+
+### 첫번째 접근 - 정답
+
+```ts
+type EndsWith<T extends string, U extends string> =
+  T extends U
+    ? true
+    : T extends `${infer _First}${infer Rest}`
+      ? Rest extends U
+        ? true
+        : EndsWith<Rest, U>
+    :  false
+```
+
+뒷부분은 어차피 infer로 통째로 떼어지기 때문에 그 크기를 하나씩 줄여가면서 extends로 U랑 평가한다.
