@@ -186,3 +186,51 @@ type ToNumber<S extends string> = S extends `${infer N extends number}` ? N : ne
 ### 정답 확인
 
 정답을 확인해봤는데 자세히 이해할 필요는 없어보여서 그냥 읽어만 봤다
+
+
+
+## PickByType
+
+From `T`, pick a set of properties whose type are assignable to `U`.
+
+For Example
+
+```ts
+type OnlyBoolean = PickByType<{
+  name: string
+  count: number
+  isReadonly: boolean
+  isEnable: boolean
+}, boolean> // { isReadonly: boolean; isEnable: boolean; }
+```
+
+```ts
+interface Model {
+  name: string
+  count: number
+  isReadonly: boolean
+  isEnable: boolean
+}
+
+type cases = [
+  Expect<Equal<PickByType<Model, boolean>, { isReadonly: boolean, isEnable: boolean }>>,
+  Expect<Equal<PickByType<Model, string>, { name: string }>>,
+  Expect<Equal<PickByType<Model, number>, { count: number }>>,
+]
+
+```
+
+### 문제 분석
+
+객체 타입에서 값이 U에 해당하는 값들만 필터링해서 객체로 모아 반환한다
+
+### 첫번째 접근 - 정답
+
+```ts
+type PickByType<T, U> = {
+  [P in keyof T as T[P] extends U ? P : never]: T[P] 
+}
+```
+
+as의 일반적인 사용을 통해 정답을 작성했다.
+
