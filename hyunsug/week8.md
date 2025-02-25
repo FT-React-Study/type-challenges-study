@@ -55,4 +55,65 @@ type PickByType<T, Picker> = {
 
 ## [Medium-2688-StartsWith](./medium/2688-starts-with.ts)
 
+```ts
+type StartsWith<S extends string, T extends string> = S extends `${T}${string}`
+  ? true
+  : false;
+```
+
+- `${T}${string}` 형태로 S를 확인하여, T와 나머지 문자열로 구성되었는지를 확인한다
+
 ## [Medium-2693-EndsWith](./medium/2693-ends-with.ts)
+
+```ts
+type EndsWith<S extends string, T extends string> = S extends `${string}${T}`
+  ? true
+  : false;
+```
+
+- `${string}${T}` 형태로 S를 확인하여, T와 나머지 문자열로 구성되었는지를 확인한다
+
+### 문자열 템플릿 리터럴의 분해: `infer`를 사용한 분해와, 패턴매칭
+
+#### `infer`를 사용한 분해
+
+```ts
+type InferExample<S extends string> = S extends `${infer First}${infer Rest}`
+  ? [First, Rest]
+  : never;
+
+// 사용 예시
+type Result1 = InferExample<"hello">; // ["h", "ello"]
+```
+
+- `infer`는 타입스크립트에게 "이 부분의 타입을 추론해서 변수에 담아"라고 지시한다
+- 패턴 매칭 방식으로 문자열을 원하는 형태로 분해할 수 있다
+- 여러 개의 `infer`를 사용하면 문자열을 여러 부분으로 나눌 수 있다
+- 분해된 각 부분을 변수에 담아 이후 타입 연산에 활용할 수 있다
+
+#### 템플릿 리터럴 기반 패턴 매칭
+
+```ts
+type StartsWithCheck<
+  S extends string,
+  T extends string
+> = S extends `${T}${string}` ? true : false;
+
+// 사용 예시
+type Result2 = StartsWithCheck<"hello", "he">; // true
+type Result3 = StartsWithCheck<"hello", "lo">; // false
+```
+
+- 특정 패턴이 있는지 확인하는 용도로 사용된다
+- `infer`를 사용하지 않고 직접 타입을 지정하여 패턴을 검사한다
+- 문자열의 구조를 검증하는 데 더 적합하다
+- 분해된 부분을 변수로 저장하지 않고 패턴 일치 여부만 확인한다
+
+## 주요 차이점
+
+- **목적**: `infer`는 분해와 추출이 목적이고, 템플릿 리터럴 패턴 매칭은 검증이 목적이다
+- **유연성**: `infer`는 추출한 부분을 변수에 담아 재사용할 수 있어 더 유연하다
+- **가독성**: 단순 패턴 검증은 템플릿 리터럴 패턴 매칭이 더 직관적이다
+- **활용**: 복잡한 문자열 조작은 `infer`가 더 적합하고, 단순 검증은 템플릿 리터럴 패턴 매칭이 더 적합하다
+
+두 방식은 상호 보완적이며 상황에 따라 적절한 방식을 선택하는 것이 중요하다
