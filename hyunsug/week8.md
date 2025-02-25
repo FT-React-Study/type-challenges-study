@@ -43,6 +43,16 @@ type DropChar<
 
 ## [Medium-2595-PickByType](./medium/2595-pick-by-type.ts)
 
+```ts
+type PickByType<T, Picker> = {
+  [K in keyof T as T[K] extends Picker ? K : never]: T[K];
+};
+```
+
+- keyof를 통해 K를 순회하며 `T[K]`(value)의 타입이 Picker와 일치하는지를 확인한다
+- `T[K] extends Picker ? T[K] : never`로 value에서 검증을 진행하면 `key: never`로 평가되어 해당 key가 제외되지 않는다.
+- 따라서 `[K in keyof T as T[K] extends Picker ? K : never]`로 검증을 진행하여 해당 key가 제외되게 한다.
+
 ## [Medium-2688-StartsWith](./medium/2688-starts-with.ts)
 
 ## [Medium-2693-EndsWith](./medium/2693-ends-with.ts)
