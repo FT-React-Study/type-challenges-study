@@ -29,6 +29,16 @@ type PercentageParser<P extends string> =
 
 ## [Medium-2070-DropChar](./medium/2070-drop-char.ts)
 
+```ts
+type DropChar<
+  S extends string,
+  C extends string
+> = S extends `${infer L}${C}${infer R}` ? DropChar<`${L}${R}`, C> : S;
+```
+
+- 문자열을 탈락시킬 C가 중간에 있는 형태로 반복해서 나눠가며 C를 제거하는 형태를 반복
+- C가 포함되지 않는 경우 반환하도록 함
+
 ## [Medium-2257-MinusOne](./medium/2257-minus-one.ts)
 
 ## [Medium-2595-PickByType](./medium/2595-pick-by-type.ts)
