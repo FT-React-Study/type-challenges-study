@@ -2,6 +2,31 @@
 
 ## [Medium-1978-PercentageParser](./medium/1978-percentage-parser.ts)
 
+- `${infer F}${infer N}${infer S}` 형태로 진행하고 F, S가 각각의 Sign을 만족하는지를 판별하려 했으나
+- 해당 위치가 비어있는 경우 N에 해당하는 부분이 쪼개지는 경우가 발생
+
+```ts
+type PlusMinus = "+" | "-";
+type PercentSign = "%";
+
+// Divide the string into prefix and rest
+type PrefixCheck<T extends string> = T extends PlusMinus ? T : never;
+type SuffixCheck<T extends string> = T extends `${infer R}${PercentSign}`
+  ? [R, "%"]
+  : [T, ""];
+
+type PercentageParser<P extends string> =
+  P extends `${infer Prefix}${infer Rest}`
+    ? Prefix extends PlusMinus
+      ? [Prefix, ...SuffixCheck<Rest>]
+      : ["", ...SuffixCheck<Rest>]
+    : ["", "", ""];
+```
+
+- 문자열을 한번에 분리하는게 아니라, 앞부분을 체크해서 operator를 확인하고 나머지에 % 사인이 있는지를 확인하는 형태로 진행
+- `${infer F}${infer N}${infer S}` 형태로 만들면, operator가 없는 경우 숫자가 F, N으로 나눠지는 경우가 발생
+- 따라서 앞부분을 체크해서 operator를 확인하고 나머지에 % 사인이 있는지를 확인하는 형태로 진행
+
 ## [Medium-2070-DropChar](./medium/2070-drop-char.ts)
 
 ## [Medium-2257-MinusOne](./medium/2257-minus-one.ts)
