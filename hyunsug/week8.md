@@ -41,6 +41,78 @@ type DropChar<
 
 ## [Medium-2257-MinusOne](./medium/2257-minus-one.ts)
 
+- 타입 시스템에서 숫자 리터럴의 직접적인 연산은 가능하지 않음
+- 배열의 length를 사용하는 방법
+
+```ts
+type BuildTuple<
+  N extends number,
+  T extends unknown[] = []
+> = T["length"] extends N ? T : BuildTuple<N, [...T, unknown]>;
+
+type MinusOne<N extends number> = BuildTuple<N> extends [...infer R, unknown]
+  ? R["length"]
+  : never;
+```
+
+- 하지만 이 방법은 재귀의 깊이 제한 문제로 큰 수에 대해서는 사용할 수 없음
+
+- 빼기를 진행하는 과정을 생각해본다면
+- 낮은 자리에서 a - b를 진행하되, a < b라면, 앞자리에서 하나를 빌려오는 형태를 취하게 된다
+- 이를 타입 시스템에서 표현하려면, 문자열을 뒤집어서 작은 자리부터 빼는 형태로 진행할 수 있다
+- 타입 시스템에서 숫자 리터럴의 직접 연산은 불가능하기 때문에, 문자열로 변형하고, 1을 뺀 짝으로 교체하는 형태를 사용할 수 있다
+
+### 구현 방식 설명
+
+1. 숫자를 문자열로 변환하고 뒤집어서 처리
+
+```ts
+type Reverse<S extends string> = S extends `${infer F}${infer R}`
+  ? `${Reverse<R>}${F}`
+  : "";
+```
+
+2. 각 자릿수별로 1을 뺀 결과를 매핑
+
+```ts
+type DigitMinusMap = {
+  "0": "9"; // 0에서 1을 빼면 9가 되고 자리내림 발생
+  "1": "0";
+  "2": "1";
+  // ... 나머지 숫자들
+};
+```
+
+3. 자리내림(borrow) 처리
+
+- 0에서 1을 빼는 경우 9가 되고 다음 자리에서 1을 더 빼야함
+- 이를 위해 MinusOneReversed 타입에서 Borrow 파라미터를 사용
+- Borrow 파라미터는 자리내림이 발생했는지 여부를 나타냄
+
+```ts
+type MinusOneReversed<
+  S extends string,
+  Borrow extends boolean = false
+> = S extends `${infer F}${infer R}`
+  ? F extends "0"
+    ? Borrow extends true
+      ? `9${MinusOneReversed<R, true>}`  // 자리내림 발생
+      : `9${R}`  // 마지막 자리
+    : // ... 나머지 로직
+```
+
+4. 앞의 불필요한 0 제거
+
+```ts
+type RemoveLeadingZeros<S extends string> = S extends "0"
+  ? "0"
+  : S extends `0${infer R}`
+  ? RemoveLeadingZeros<R>
+  : S;
+```
+
+이러한 방식으로 큰 수에 대해서도 1을 뺄 수 있는 타입을 구현할 수 있습니다.
+
 ## [Medium-2595-PickByType](./medium/2595-pick-by-type.ts)
 
 ```ts
