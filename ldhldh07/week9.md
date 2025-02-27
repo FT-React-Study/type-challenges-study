@@ -98,3 +98,85 @@ infer O로 저장할 객체를 할당해준 다음에 이 O를 순회하여 합�
 ```
 
 해당 케이스를 처리하기 위해 k의 기본값을 keyof T로 정해줘야 했다
+
+## RequiredByKeys
+
+Implement a generic `RequiredByKeys<T,  K>` which takes two type argument `T` and `K`.
+
+`K` specify the set of properties of `T` that should set to be required. When `K` is not provided, it should make all properties required just like the normal `Required<T>`.
+
+For example
+
+```ts
+interface User {
+  name?: string
+  age?: number
+  address?: string
+}
+
+type UserRequiredName = RequiredByKeys<User, 'name'> // { name: string; age?: number; address?: string }
+```
+
+```ts
+interface User {
+  name?: string
+  age?: number
+  address?: string
+}
+
+interface UserRequiredName {
+  name: string
+  age?: number
+  address?: string
+}
+
+interface UserRequiredNameAndAge {
+  name: string
+  age: number
+  address?: string
+}
+
+type cases = [
+  Expect<Equal<RequiredByKeys<User, 'name'>, UserRequiredName>>,
+  Expect<Equal<RequiredByKeys<User, 'name' | 'age'>, UserRequiredNameAndAge>>,
+  Expect<Equal<RequiredByKeys<User>, Required<User>>>,
+  // @ts-expect-error
+  Expect<Equal<RequiredByKeys<User, 'name' | 'unknown'>, UserRequiredName>>,
+]
+```
+
+### 문제 분석
+
+Partial By Key와 반대로 U에 들어있는 속성을 required로 만들어야 한다.
+
+
+
+### 첫번째 접근
+
+```ts
+type RequiredByKeys<T, K extends keyof T = keyof T> = { 
+  [P in keyof T as P extends K ? P : never] : T[P]
+} & {
+  [P in keyof T as P extends K ? never : P] : T[P]
+} extends infer O ? { [P in keyof O] : O[P]} : never;
+```
+
+그냥 ?가 안붙은 상태로 넣으면 될까 했는데 안됐다
+
+
+
+### 정답
+
+```ts
+type RequiredByKeys<T, K extends keyof T = keyof T> = { 
+  [P in keyof T as P extends K ? P : never]-? : T[P]
+} & {
+  [P in keyof T as P extends K ? never : P] : T[P]
+} extends infer O ? { [P in keyof O] : O[P]} : never;
+```
+
+
+
+#### -?
+
+?를 제거해서 required로 바꿔주는 속성이다
