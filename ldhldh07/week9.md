@@ -464,3 +464,41 @@ type Test = Required<{ key?: undefined }>;
 // strictNullChecks가 true 경우 { key: never }
 ```
 
+
+
+## Shift
+
+Implement the type version of `Array.shift`
+
+For example
+
+```ts
+type Result = Shift<[3, 2, 1]> // [2, 1]
+```
+
+```ts
+type cases = [
+  // @ts-expect-error
+  Shift<unknown>,
+  Expect<Equal<Shift<[]>, []>>,
+  Expect<Equal<Shift<[1]>, []>>,
+  Expect<Equal<Shift<[3, 2, 1]>, [2, 1]>>,
+  Expect<Equal<Shift<['a', 'b', 'c', 'd']>, ['b', 'c', 'd']>>,
+]
+```
+
+### 문제 분석
+
+배열 타입 T에서 가장 앞의 값을 빼서 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type Shift<T extends Array<any>> = T extends [infer _First, ...infer Rest] ? Rest : []
+```
+
+infer로 가장 앞의 값을 분리하고 Rest를 반환했다.
+
+extends가 안되는 경우는 빈 배열이기 때문에 빈 배열을 반환한다.
