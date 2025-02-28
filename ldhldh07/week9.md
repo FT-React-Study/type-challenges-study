@@ -77,7 +77,13 @@ type PartialByKeys<T, K extends keyof T = keyof T> = {
 
 
 
-#### extends infer O ? { [P in keyof O]: O[P] } : never;
+#### 인터섹션 합치기
+
+```ts
+T extends infer O ? { [P in keyof O]: O[P] } : never;
+```
+
+
 
 객체를 인터섹션(&)으로 합친 경우 타입스크립트는 인터섹션을 그대로 유지한 채로 타입을 평가한다.
 
@@ -86,6 +92,19 @@ type PartialByKeys<T, K extends keyof T = keyof T> = {
 
 
 infer O로 저장할 객체를 할당해준 다음에 이 O를 순회하여 합쳐진 형태의 객체를 만든다.
+
+
+
+공식적으로는 이렇게도 한다
+
+```ts
+export type MergeInsertions<T> =
+  T extends object
+    ? { [K in keyof T]: MergeInsertions<T[K]> }
+    : T
+```
+
+
 
 
 
@@ -98,6 +117,8 @@ infer O로 저장할 객체를 할당해준 다음에 이 O를 순회하여 합�
 ```
 
 해당 케이스를 처리하기 위해 k의 기본값을 keyof T로 정해줘야 했다
+
+
 
 ## RequiredByKeys
 
@@ -180,3 +201,86 @@ type RequiredByKeys<T, K extends keyof T = keyof T> = {
 #### -?
 
 ?를 제거해서 required로 바꿔주는 속성이다
+
+
+
+## mutable
+
+Implement the generic `Mutable<T>` which makes all properties in `T` mutable (not readonly).
+
+For example
+
+```ts
+interface Todo {
+  readonly title: string
+  readonly description: string
+  readonly completed: boolean
+}
+
+type MutableTodo = Mutable<Todo> // { title: string; description: string; completed: boolean; }
+```
+
+```ts
+interface Todo1 {
+  title: string
+  description: string
+  completed: boolean
+  meta: {
+    author: string
+  }
+}
+
+type List = [1, 2, 3]
+
+type cases = [
+  Expect<Equal<Mutable<Readonly<Todo1>>, Todo1>>,
+  Expect<Equal<Mutable<Readonly<List>>, List>>,
+]
+
+type errors = [
+  // @ts-expect-error
+  Mutable<'string'>,
+  // @ts-expect-error
+  Mutable<0>,
+]
+```
+
+### 문제분석
+
+타입을 mutable 타입으로 바꾼다
+
+readonly로 바꿨던거를 다시 mutable한 타입으로 바꾸는 케이스가 있다
+
+### 첫번째 접근
+
+```ts
+type Mutable<T> = {
+  [P in keyof T]-readonly: T[P]
+}
+```
+
+-?도 되길래 -readonly 해봤는데 안됐다
+
+
+
+### 두번째 접근
+
+```ts
+type Mutable<T> = {
+  -readonly [P in keyof T]: T[P]
+}
+```
+
+앞에다 붙여야 하는 것이었다.
+
+
+
+### 세번째 접근
+
+```ts
+type Mutable<T extends object> = {
+  -readonly [P in keyof T]: T[P]
+}
+```
+
+에러 케이스들을 위해 T를 제한 걸어줬다.
