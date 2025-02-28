@@ -284,3 +284,49 @@ type Mutable<T extends object> = {
 ```
 
 에러 케이스들을 위해 T를 제한 걸어줬다.
+
+
+
+### OmitByType
+
+From `T`, pick a set of properties whose type are not assignable to `U`.
+
+For Example
+
+```ts
+type OmitBoolean = OmitByType<{
+  name: string
+  count: number
+  isReadonly: boolean
+  isEnable: boolean
+}, boolean> // { name: string; count: number }
+```
+
+```ts
+interface Model {
+  name: string
+  count: number
+  isReadonly: boolean
+  isEnable: boolean
+}
+
+type cases = [
+  Expect<Equal<OmitByType<Model, boolean>, { name: string, count: number }>>,
+  Expect<Equal<OmitByType<Model, string>, { count: number, isReadonly: boolean, isEnable: boolean }>>,
+  Expect<Equal<OmitByType<Model, number>, { name: string, isReadonly: boolean, isEnable: boolean }>>,
+]
+```
+
+### 문제 분석
+
+객체 타입 T에서 그 타입값이 U인 경우 뺀다.
+
+### 첫번째 접근 - 정답
+
+```ts
+type OmitByType<T, U> = {
+  [P in keyof T as T[P] extends U ? never : P] : T[P]
+}
+```
+
+기본적인 as 방식으로 풀었다.
