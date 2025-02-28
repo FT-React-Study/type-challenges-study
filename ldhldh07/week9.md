@@ -330,3 +330,137 @@ type OmitByType<T, U> = {
 ```
 
 기본적인 as 방식으로 풀었다.
+
+
+
+## ObjectEntries
+
+Implement the type version of `Object.entries`
+
+For example
+
+```ts
+interface Model {
+  name: string;
+  age: number;
+  locations: string[] | null;
+}
+type modelEntries = ObjectEntries<Model> // ['name', string] | ['age', number] | ['locations', string[] | null];
+```
+
+```ts
+interface Model {
+  name: string
+  age: number
+  locations: string[] | null
+}
+
+type ModelEntries = ['name', string] | ['age', number] | ['locations', string[] | null]
+
+type cases = [
+  Expect<Equal<ObjectEntries<Model>, ModelEntries>>,
+  Expect<Equal<ObjectEntries<Partial<Model>>, ModelEntries>>,
+  Expect<Equal<ObjectEntries<{ key?: undefined }>, ['key', undefined]>>,
+  Expect<Equal<ObjectEntries<{ key: undefined }>, ['key', undefined]>>,
+  Expect<Equal<ObjectEntries<{ key: string | undefined }>, ['key', string | undefined]>>,
+]
+
+```
+
+### 문제분석
+
+객체 속성으로 되어있는 값을 개별 속성들의 유니온 값으로 바꿔준다.
+
+### 첫번째 접근
+
+```ts
+type ObjectEntries<T, U = keyof T> = 
+  U extends keyof T 
+    ? [U, T[U]] 
+    : never
+```
+
+keyof T를 변수로 하나 만든 다음에 keyof T를 가지고 유니온 분배 법칙을 했다
+
+```ts
+Expect<Equal<ObjectEntries<Partial<Model>>, ModelEntries>>,
+type Case2 = ObjectEntries<Partial<Model>>
+// ["name", string | undefined] | ["age", number | undefined] | ["locations", string[] | null | undefined]
+```
+
+해당 케이스가 적용이 안됐다 타입이 optional이여서 undefined가 붙는다.
+
+재밌는건 ?로 optional한건 undefined를 제거해야 하고 명시적으로 undefined가 유니온으로 더해진 타입은 붙여야 했다.
+
+속성에 optional하게 만드는 patial을 붙여서 속성이 optional 해진 경우 undefined가 들어가기 때문이다
+
+
+
+### 두번째 접근
+
+```ts
+type ObjectEntries<T extends object, RequiredT = {[P in keyof T]-?: T[P]}, U = keyof T> = 
+  U extends keyof RequiredT 
+    ? [U, RequiredT[U]] 
+    : never
+```
+
+그래서 ?를 다 뺐더니 이번에는
+
+```ts
+type Case3 = ObjectEntries<{ key?: undefined }> // ['key', never]
+```
+
+이 케이스가 안됐다
+
+`-?`는 아예 빼는 식으로 작동하여 undefined가 never가 되어버린다.
+
+
+
+### 세번째 접근 - 정답
+
+```ts
+type ObjectEntries<T extends object, RequiredT = {[P in keyof T]-?: T[P]}, U = keyof RequiredT> = 
+  U extends keyof RequiredT
+    ? RequiredT[U] extends never
+      ? U extends keyof T
+        ? [U, T[U]]
+        : never
+      : [U, RequiredT[U]]
+    : never
+```
+
+이 경우 T의 해당값이 never가 아닌데 Required를 단 후에는 RequiredT[U]는 never가 되어버린 경우를 `[ key? : undefined]`인 경우로 생각했다
+
+그리고 그 경우 undefined로 반환하게 설계를 했다.
+
+
+
+
+
+#### strictNullChecks
+
+[공식문서](https://www.typescriptlang.org/ko/tsconfig/#strictNullChecks)
+
+이후 undefined 타입을 required로 했을때 왜 never로 되는지 궁금해서 알아보니  이건 타입스크립트 설정과도 관련이 있었다
+
+strictNullChecks 옵션이 true로 되어있는 경우 타입이 required일때 null 혹은 undefined을 허용하지 않는다.
+
+그래서 never로 평가해서 해당 key를 호출할 경우 에러를 일으킨다.
+
+
+
+그래서 required로 `-?`가 동작할때 체크를 하고 key의 타입이 `-?`로 required가 됐는데 값은 undefined이니 never가 된다. 	
+
+그리고 이 프로젝트의 경우 strict 설정이 true로 되어있어서 에러가 난다
+
+
+
+실제로 이 설정을 false로 하니 두번째 접근의 답도 에러가 나지 않았다.
+
+```ts
+type Test = Required<{ key?: undefined }>;
+// strictNullChecks가 false인 경우 { key: undefined }
+// strictNullChecks가 true 경우 { key: never }
+```
+
