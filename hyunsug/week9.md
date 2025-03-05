@@ -110,6 +110,21 @@ type ObjectEntries<T> = {
 - 따라서, 모든 key를 optional로 인식하지 않게 하기 위해 `-?`를 사용했다.
 - 이는 `keyof Required<T>`와 같은 효과를 갖는다.
 
+```ts
+type ObjectEntries<T> = {
+  [K in keyof T]-?: [
+    K,
+    T[K] extends undefined ? T[K] : Exclude<T[K], undefined>
+  ];
+}[keyof T];
+```
+
+- 최종 방식은 추가적인 처리를 더했다.
+- TypeScript에서 Object가 optional key를 갖는다면 `Object[OptionalKey]`의, Value의 타입은 `ValueType | undefined`이다.
+- 따라서, 미리 명시적으로 지정된 `undefined`를 제외한 optional의 `undefined`를 제거하기 위해
+- `T[K] extends undefind`로 확인을 하여 명시적으로 `undefined` 타입인 경우를 제외하고
+- `Exclude<T[K], undefined>`로 이를 제거해주는 방식을 취한다.
+
 ## [Medium-3062-Shift](./medium/3062-shift.ts)
 
 ```ts
