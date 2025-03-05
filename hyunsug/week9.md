@@ -79,6 +79,14 @@ type Mutable<T extends object> = {
 
 ## [Medium-2852-OmitByType](./medium/2852-omit-by-type.ts)
 
+```ts
+type OmitByType<T, U> = {
+  [K in keyof T as T[K] extends U ? never : K]: T[K];
+};
+```
+
+- `T[K] extends U ? never : K`를 통해, U에 해당한다면 해당 key를 제외하는 방식이다.
+
 ## [Medium-2946-ObjectEntries](./medium/2946-object-entries.ts)
 
 ## [Medium-3062-Shift](./medium/3062-shift.ts)
