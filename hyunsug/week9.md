@@ -89,4 +89,25 @@ type OmitByType<T, U> = {
 
 ## [Medium-2946-ObjectEntries](./medium/2946-object-entries.ts)
 
+```ts
+type ObjectEntries<T> = {
+  [K in keyof T]: [K, T[K]];
+}[keyof T];
+```
+
+- 먼저 접근했던 방식은 `["a", "b"][number]`와 같이 접근하여 `"a" | "b"`를 얻어내는 방식이었다.
+- 이 방식에 기반하여 Mapped Type을 이용하고, `[K, T[K]]`를 생성했다.
+- 예제 케이스들을 보면, 이렇게만 했을 경우 optional key가 존재하는 경우 최종 결과 Union에 undefined가 포함되는 것을 확인할 수 있었다.
+- `type ObjectEntriesTest2 = ["key", undefined] | undefined`
+
+```ts
+type ObjectEntries<T> = {
+  [K in keyof T]-?: [K, T[K]];
+}[keyof T];
+```
+
+- 예제들을 보면, optional key가 존재하더라도 그 key는 활용되어야 하며, value가 undefined인 경우는 특별한 처리가 필요하지 않음을 알 수 있었다.
+- 따라서, 모든 key를 optional로 인식하지 않게 하기 위해 `-?`를 사용했다.
+- 이는 `keyof Required<T>`와 같은 효과를 갖는다.
+
 ## [Medium-3062-Shift](./medium/3062-shift.ts)
