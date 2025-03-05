@@ -56,6 +56,27 @@ type SecondObject = {
 
 ## [Medium-2793-Mutable](./medium/2793-mutable.ts)
 
+```ts
+type Mutable<T extends object> = {
+  -readonly [K in keyof T]: T[K];
+};
+```
+
+- `-readonly`를 통해 `Mapped Type`에서 `readonly`를 명시적으로 제거하는 방법이다.
+- Error Case를 보면 Primitive Type에 대해 에러를 발생시키길 원하고 있다.
+- 따라서 T는 객체 타입으로 제한하여, 오류를 방지한다.
+- 주어진 예제 케이스들에는 없었지만, 객체 내 객체도 Mutable로 전환하려 한다면 다음과 같이 재귀적으로 접근할 수 있을 것, 하지만 `null`과 `undefined`, 함수 타입에 대한 예외 처리가 필요하다.
+
+```ts
+type Mutable<T extends object> = {
+  -readonly [K in keyof T]: T[K] extends object
+    ? T[K] extends null | undefined | (...args: any[]) => any
+      ? T[K]
+      : Mutable<T[K]>
+    : T[K];
+};
+```
+
 ## [Medium-2852-OmitByType](./medium/2852-omit-by-type.ts)
 
 ## [Medium-2946-ObjectEntries](./medium/2946-object-entries.ts)
