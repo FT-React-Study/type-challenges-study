@@ -111,3 +111,12 @@ type ObjectEntries<T> = {
 - 이는 `keyof Required<T>`와 같은 효과를 갖는다.
 
 ## [Medium-3062-Shift](./medium/3062-shift.ts)
+
+```ts
+type Shift<T extends readonly any[]> = T extends [infer _, ...infer R] ? R : [];
+```
+
+- 이전에 진행했었던 [`Pop`](./medium/16-pop.ts)과 유사한 방식으로 접근할 수 있는 문제다.
+- 튜플에 대해서도 정상적으로 동작하는 것을 위해 `readonly any[]`로 제한조건을 붙였다.
+- 이 조건에 의해 `Shift<unknown>`은 TS Error가 발생한다.
+- Shift 이후 빈 배열에 대해서는 빈 배열을 반환하도록 했다.
