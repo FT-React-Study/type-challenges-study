@@ -179,3 +179,83 @@ type FlipArguments<T extends (...args: any) => any> =
 ```
 
 파라미터 타입과 리턴 타입을 infer로 받아 파라미터 타입에 직전에 했던 Reverse를 적용해줬다
+
+
+
+## FlattenDepth
+
+Recursively flatten array up to depth times.
+
+For example:
+
+```ts
+type a = FlattenDepth<[1, 2, [3, 4], [[[5]]]], 2> // [1, 2, 3, 4, [5]]. flattern 2 times
+type b = FlattenDepth<[1, 2, [3, 4], [[[5]]]]> // [1, 2, 3, 4, [[5]]]. Depth defaults to be 1
+```
+
+
+
+If the depth is provided, it's guaranteed to be positive integer.
+
+
+
+```ts
+type cases = [
+  Expect<Equal<FlattenDepth<[]>, []>>,
+  Expect<Equal<FlattenDepth<[1, 2, 3, 4]>, [1, 2, 3, 4]>>,
+  Expect<Equal<FlattenDepth<[1, [2]]>, [1, 2]>>,
+  Expect<Equal<FlattenDepth<[1, 2, [3, 4], [[[5]]]], 2>, [1, 2, 3, 4, [5]]>>,
+  Expect<Equal<FlattenDepth<[1, 2, [3, 4], [[[5]]]]>, [1, 2, 3, 4, [[5]]]>>,
+  Expect<Equal<FlattenDepth<[1, [2, [3, [4, [5]]]]], 3>, [1, 2, 3, 4, [5]]>>,
+  Expect<Equal<FlattenDepth<[1, [2, [3, [4, [5]]]]], 19260817>, [1, 2, 3, 4, 5]>>,
+]
+```
+
+
+
+### 문제 분석
+
+여러개의 뎁스에 있는 값들을 다 depth1로 변환해서 배열로 반환한다.
+
+
+
+### 첫번째 접근
+
+```ts
+type FlattenDepth<T> = 
+  T extends [infer First, ...infer Rest] 
+    ? First extends Array<any>
+      ? [...FlattenDepth<First>, ...FlattenDepth<Rest>]
+      : [First, ...FlattenDepth<Rest>]
+    : T
+```
+
+배열인 경우에는 먼저 배열이 하나짜리인지 판단후, 재귀적으로 뎁스를 없에주고 depth가 1일때는 뒷 부분을 진행해주는 방식을 이용했다.
+
+하지만 이 유틸리티 함수의 제네릭은 두개였고 뎁스를 줄여주는 횟수를 만들어주는 제네릭도 하나 있었다.
+
+
+
+### 두번째 접근
+
+```ts
+type FlattenDepth<T, Limit = 1, CountArray extends Array<any> = []> = 
+  CountArray['length'] extends Limit
+    ? T
+    : T extends [infer First, ...infer Rest] 
+      ? First extends Array<any>
+        ? [...FlattenDepth<First, Limit, ['박대연', ...CountArray]>, ...FlattenDepth<Rest, Limit, CountArray>]
+        : [First, ...FlattenDepth<Rest, Limit, CountArray>]
+      : T
+```
+
+
+
+숫자 값을 이용할 때 ['length']와 가상의 배열값을 통해 해결하는 방식이 이전에도 관념으론 나왔었던 것 같고, gpt로 힌트를 얻어서 적용했다.
+
+가상의 배열을 만들고 뎁스를 하나 줄일때마다 원소를 하나씩 늘려준다 그게 Limit으로 들어온 값과 length가 같아지면 반환한다.
+
+
+
+빈 배열을 통해 counting을 하는 방식은 계속 유용하게 사용할 수 있을 듯 하다.
+
