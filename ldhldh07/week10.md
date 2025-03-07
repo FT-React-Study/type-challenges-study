@@ -327,6 +327,110 @@ type BEM<B extends string, E extends string[], M extends string[]> =
 
 
 
+## Inorder Traversal
+
+Implement the type version of binary tree inorder traversal.
+
+For example:
+
+```ts
+const tree1 = {
+  val: 1,
+  left: null,
+  right: {
+    val: 2,
+    left: {
+      val: 3,
+      left: null,
+      right: null,
+    },
+    right: null,
+  },
+} as const
+
+type A = InorderTraversal<typeof tree1> // [1, 3, 2]
+```
+
+```ts
+const tree1 = {
+  val: 1,
+  left: null,
+  right: {
+    val: 2,
+    left: {
+      val: 3,
+      left: null,
+      right: null,
+    },
+    right: null,
+  },
+} as const
+
+const tree2 = {
+  val: 1,
+  left: null,
+  right: null,
+} as const
+
+const tree3 = {
+  val: 1,
+  left: {
+    val: 2,
+    left: null,
+    right: null,
+  },
+  right: null,
+} as const
+
+const tree4 = {
+  val: 1,
+  left: null,
+  right: {
+    val: 2,
+    left: null,
+    right: null,
+  },
+} as const
+
+type cases = [
+  Expect<Equal<InorderTraversal<null>, []>>,
+  Expect<Equal<InorderTraversal<typeof tree1>, [1, 3, 2]>>,
+  Expect<Equal<InorderTraversal<typeof tree2>, [1]>>,
+  Expect<Equal<InorderTraversal<typeof tree3>, [2, 1]>>,
+  Expect<Equal<InorderTraversal<typeof tree4>, [1, 2]>>,
+]
+```
+
+### 문제분석
+
+트리의 중위순회하는 방식으로 트리를 배열로 반환해줍니다.
+
+
+
+### 첫번째 접근 - 정답
+
+실제로 트리 중위순회할때와 똑같은 방식으로 재귀를 작동시키면 됩니다.
+
+```ts
+interface TreeNode {
+  val: number
+  left: TreeNode | null
+  right: TreeNode | null
+}
+
+type InorderTraversal<T extends TreeNode | null> = 
+  T extends TreeNode 
+   ? [
+      ...InorderTraversal<T['left']>,
+      T['val'],
+      ...InorderTraversal<T['right']> 
+    ]
+   : []
+
+```
+
+
+
 ## Flip
 
 Implement the type of `just-flip-object`. Examples:
