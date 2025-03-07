@@ -61,3 +61,64 @@ type TupleToNestedObject<T, U> =
 하나의 타입이여도 마찬가지였다.
 
 또한 이때 First는 PropertyKey타입이어야 했고 이는 as로 제한해줬다.
+
+
+
+## Reverse
+
+Implement the type version of `Array.reverse`
+
+For example:
+
+```ts
+type a = Reverse<['a', 'b']> // ['b', 'a']
+type b = Reverse<['a', 'b', 'c']> // ['c', 'b', 'a']
+```
+
+```ts
+type cases = [
+  Expect<Equal<Reverse<[]>, []>>,
+  Expect<Equal<Reverse<['a', 'b']>, ['b', 'a']>>,
+  Expect<Equal<Reverse<['a', 'b', 'c']>, ['c', 'b', 'a']>>,
+]
+
+type errors = [
+  // @ts-expect-error
+  Reverse<'string'>,
+  // @ts-expect-error
+  Reverse<{ key: 'value' }>,
+]
+```
+
+
+
+### 문제 분석
+
+배열 타입에서 원소들의 순서를 거꾸로 한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type Reverse<T extends Array<any>> =
+  T extends [infer First, ...infer Rest]
+    ? [...Reverse<Rest>, First]
+    : T
+```
+
+하나씩 바꿔주는 방식으로 했다.
+
+
+
+### 다른 정답
+
+```ts
+type Reverse<T extends any[]> =
+  T extends [infer First, ...infer Middle, infer Last]
+    ? [Last, ...Reverse<Middle>, First]
+    : T
+```
+
+이런식으로도 되지 않을까 해서 해봤는데 됐다.
+
