@@ -259,3 +259,69 @@ type FlattenDepth<T, Limit = 1, CountArray extends Array<any> = []> =
 
 빈 배열을 통해 counting을 하는 방식은 계속 유용하게 사용할 수 있을 듯 하다.
 
+
+
+## BEM style string
+
+The Block, Element, Modifier methodology (BEM) is a popular naming convention for classes in CSS.
+
+For example, the block component would be represented as `btn`, element that depends upon the block would be represented as `btn__price`, modifier that changes the style of the block would be represented as `btn--big` or `btn__price--warning`.
+
+Implement `BEM<B, E, M>` which generate string union from these three parameters. Where `B` is a string literal, `E` and `M` are string arrays (can be empty).
+
+```ts
+type cases = [
+  Expect<Equal<BEM<'btn', ['price'], []>, 'btn__price'>>,
+  Expect<Equal<BEM<'btn', ['price'], ['warning', 'success']>, 'btn__price--warning' | 'btn__price--success' >>,
+  Expect<Equal<BEM<'btn', [], ['small', 'medium', 'large']>, 'btn--small' | 'btn--medium' | 'btn--large' >>,
+]
+```
+
+
+
+### 문제 접근
+
+BEM의 적용법을 그대로 사용해서 계층별로 문자열로 반환한다
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type BEM<B extends string, E extends string[], M extends string[]> = 
+  E extends []
+    ? M extends []
+      ? `${B}`
+      : any extends M[number]
+        ? `${B}--${M[number]}`
+        : never
+    : any extends E[number]
+      ? M extends []
+        ? `${B}__${E[number]}`
+        : any extends M[number]
+          ? `${B}__${E[number]}--${M[number]}`
+          : never
+      : never
+```
+
+[number]를 통해 유니온으로 만들어준 후 분배법칙을 사용하는걸 기본 방식으로 경우의 수를 나눠서 풀었다
+
+
+
+### 더 나은 정답
+
+```ts
+type BEM<B extends string, E extends string[], M extends string[]> = 
+  E[number] extends never
+    ? M[number] extends never
+      ? B
+      : `${B}--${M[number]}`
+    : M[number] extends never
+      ? `${B}__${E[number]}`
+      : `${B}__${E[number]}--${M[number]}`;
+```
+
+분배법칙을 extends 앞에서도 적용된다는 것을 까먹었다
+
+이 방식대로면 분배법칙을 사용하면서 E가 공집합인지도 동시에 평가가 가능하다.
+
