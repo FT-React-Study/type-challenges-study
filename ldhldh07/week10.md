@@ -122,3 +122,60 @@ type Reverse<T extends any[]> =
 
 이런식으로도 되지 않을까 해서 해봤는데 됐다.
 
+
+
+## Flip Arguments
+
+Implement the type version of lodash's `_.flip`.
+
+Type `FlipArguments<T>` requires function type `T` and returns a new function type which has the same return type of T but reversed parameters.
+
+For example:
+
+```ts
+type Flipped = FlipArguments<(arg0: string, arg1: number, arg2: boolean) => void> 
+// (arg0: boolean, arg1: number, arg2: string) => void
+```
+
+```ts
+type cases = [
+  Expect<Equal<FlipArguments<() => boolean>, () => boolean>>,
+  Expect<Equal<FlipArguments<(foo: string) => number>, (foo: string) => number>>,
+  Expect<Equal<FlipArguments<(arg0: string, arg1: number, arg2: boolean) => void>, (arg0: boolean, arg1: number, arg2: string) => void>>,
+]
+
+type errors = [
+  // @ts-expect-error
+  FlipArguments<'string'>,
+  // @ts-expect-error
+  FlipArguments<{ key: 'value' }>,
+  // @ts-expect-error
+  FlipArguments<['apple', 'banana', 100, { a: 1 }]>,
+  // @ts-expect-error
+  FlipArguments<null | undefined>,
+]
+```
+
+
+
+### 문제 분석
+
+함수 타입의 제네릭을 받아 args의 순서를 거꾸로 해서 반환하도록 하는 유틸리티 함수이다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type Reverse<T extends any[]> =
+  T extends [infer First, ...infer Middle, infer Last]
+    ? [Last, ...Reverse<Middle>, First]
+    : T
+    
+type FlipArguments<T extends (...args: any) => any> =
+  T extends (...args: infer ParameterTypes) => infer ReturnType
+   ? (...args: Reverse<ParameterTypes>) => ReturnType
+   : never
+```
+
+파라미터 타입과 리턴 타입을 infer로 받아 파라미터 타입에 직전에 했던 Reverse를 적용해줬다
