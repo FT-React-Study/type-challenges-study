@@ -17,6 +17,16 @@ type TupleToNestedObject<T extends readonly string[], U> = T extends [
 
 ## [Medium-3192-Reverse](./medium/3192-reverse.ts)
 
+```ts
+type Reverse<T extends readonly any[]> = T extends [infer First, ...infer Rest]
+  ? [...Reverse<Rest>, First]
+  : T;
+```
+
+- `T extends [infer First, ...infer Rest]` 형태로 주어진 배열을 나눈다.
+- `First`를 배열의 마지막 요소로 두고 `Rest`를 spread하며 재귀적으로 호출한다.
+- T에 튜플이 아닌 primitive type(`string`, `number` 등) 혹은 객체(`{ [key: keyof any]: any }`)가 들어오는 경우 에러를 발생시키도록 제시하고 있기 때문에, T의 타입을 `readonly any[]`로 제한한다.
+
 ## [Medium-3196-FlipArguments](./medium/3196-flip-arguments.ts)
 
 ## [Medium-3243-FlattenDepth](./medium/3243-flatten-depth.ts)
