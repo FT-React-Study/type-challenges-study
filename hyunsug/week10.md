@@ -29,6 +29,23 @@ type Reverse<T extends readonly any[]> = T extends [infer First, ...infer Rest]
 
 ## [Medium-3196-FlipArguments](./medium/3196-flip-arguments.ts)
 
+```ts
+type ReverseArgs<Args extends any[]> = Args extends [infer First, ...infer Rest]
+  ? [...ReverseArgs<Rest>, First]
+  : Args;
+
+type FlipArguments<T extends (...args: any[]) => any> = T extends (
+  ...args: infer Args
+) => infer R
+  ? (...args: ReverseArgs<Args>) => R
+  : never;
+```
+
+- `FlipArguments` 함수는 주어진 인자의 순서를 뒤집는다.
+- 앞선 `Reverse` 타입을 활용할 수 있고, 보다 의미를 드러내기 위해 `ReverseArgs` 타입으로 정의했다.
+- `T extends (...args: any[]) => any` 형태로 제약을 두어 문제의 에러조건에 맞게 함수로 T를 제한하도록 한다.
+- `(...args: infer Args)`를 통해 Args를 추론하고, `(...args: ReverseArgs<Args>) => R` 형태로 뒤집어 반환한다.
+
 ## [Medium-3243-FlattenDepth](./medium/3243-flatten-depth.ts)
 
 ## [Medium-3326-BEMStyleString](./medium/3326-bem-style-string.ts)
