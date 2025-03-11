@@ -48,6 +48,45 @@ type FlipArguments<T extends (...args: any[]) => any> = T extends (
 
 ## [Medium-3243-FlattenDepth](./medium/3243-flatten-depth.ts)
 
+```ts
+type FlattenOnce<T extends readonly any[]> = T extends [
+  infer First,
+  ...infer Rest
+]
+  ? First extends readonly any[]
+    ? [...First, ...FlattenOnce<Rest>]
+    : [First, ...FlattenOnce<Rest>]
+  : T;
+```
+
+- 한번만 평탄화하는 타입을 먼저 만들어보았다.
+- 기본적으로 주어진 배열을 나누고, `First`가 배열이 아니라면 그대로, 배열이라면 평탄화하는 재귀 호출을 이용하게 된다.
+
+```ts
+type FlattenDepth<
+  T extends readonly any[],
+  Depth extends number = 1,
+  Count extends any[] = []
+> = Count["length"] extends Depth
+  ? T
+  : T extends [infer First, ...infer Rest]
+  ? First extends readonly any[]
+    ? [
+        ...FlattenDepth<First, Depth, [...Count, 1]>,
+        ...FlattenDepth<Rest, Depth, Count>
+      ]
+    : [First, ...FlattenDepth<Rest, Depth, Count>]
+  : T;
+```
+
+- `FlattenDepth` 타입은 두 번째 제너릭으로 평탄화할 깊이를 받으며, 기본값은 1이다.
+- 세번째 `Count` 제너릭은 평탄화가 진행된 횟수를 카운트하기 위해 숫자 리터럴을 이용하기 위해 빈 배열을 이용한다.
+
+- `Count["length"] extends Depth`는 평탄화가 진행된 횟수가 주어진 횟수와 같은지를 비교하여, 같다면 완료된 타입을 반환한다.
+- `T extends [infer First, ...infer Rest]`를 통해 주어진 배열을 나누고, `First`가 배열이라면 평탄화 호출을 진행하고, 배열이 아니라면 그대로 반환한다.
+- 이 때, `Count["length"]`를 늘리기 위해 `[...Count, 1]`과 같이 어떤 값이든 추가하여 배열의 길이를 늘린다.
+- `Rest`에 대해서 이를 동일하게 적용하여 각 `Rest`의 `First`가 평탄화가 진행된다.
+
 ## [Medium-3326-BEMStyleString](./medium/3326-bem-style-string.ts)
 
 ## [Medium-3376-InorderTraversal](./medium/3376-inorder-traversal.ts)
