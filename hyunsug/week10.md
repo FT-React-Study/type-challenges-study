@@ -105,3 +105,26 @@ type BEM<
 - template literal 형태를 이용하여 E, M에 대해 빈 배열이라면 빈 문자열을, 아니라면 BEM 형태로 분배하여 반환하게 설정한다.
 
 ## [Medium-3376-InorderTraversal](./medium/3376-inorder-traversal.ts)
+
+- Inorder Traversal: 이진 트리에서의 중위 순회를 의미
+- 중위 순회란: left -> root -> right 순으로 방문하는 방식이며 자식이 없는 가장 깊은 left node에서 시작한다.
+
+```ts
+interface TreeNode {
+  val: number;
+  left: TreeNode | null;
+  right: TreeNode | null;
+}
+
+type InorderTraversal<T extends TreeNode | null> = T extends TreeNode
+  ? [...InorderTraversal<T["left"]>, T["val"], ...InorderTraversal<T["right"]>]
+  : [];
+```
+
+- `TreeNode`는 기본적인 이진 트리의 노드 형태이다.
+- `InorderTraversal`은 이진 트리에서 중위 순회를 진행한 결과를 튜플로 반환하는 타입이다.
+- `T extends TreeNode`를 통해 노드인지를 확인한다.
+- 먼저 `...InorderTraversal<T["left"]>`를 통해 left node의 끝을 탐색하여 배열로 변환한다.
+- 그 다음 `T["val"]`를 통해 현재 노드의 값을 배열에 추가한다.
+- 마지막으로 `...InorderTraversal<T["right"]>`를 통해 right node의 끝을 탐색하여 배열에 추가한다.
+- 이 때, `T extends TreeNode | null`을 통해 노드가 아니라면 빈 배열을 반환하도록 한다.
