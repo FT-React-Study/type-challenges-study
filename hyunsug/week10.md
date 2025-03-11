@@ -89,4 +89,19 @@ type FlattenDepth<
 
 ## [Medium-3326-BEMStyleString](./medium/3326-bem-style-string.ts)
 
+```ts
+type BEM<
+  B extends string,
+  E extends string[],
+  M extends string[]
+> = `${B}${E extends [] ? "" : `__${E[number]}`}${M extends []
+  ? ""
+  : `--${M[number]}`}`;
+```
+
+- `BEM`은 Block Element Modifier 클래스네임을 의미하며, id가 아닌 클래스만으로 의미있는 html class를 작성할 때 주로 사용되는 형태이다.
+- `B`는 Block element 클래스네임을 의미, `E`는 Element, `M`은 Modifier를 의미한다.
+- 주어진 `B, E, M`을 이용하여 조합된 클래스네임의 유니언을 반환해야 한다.
+- template literal 형태를 이용하여 E, M에 대해 빈 배열이라면 빈 문자열을, 아니라면 BEM 형태로 분배하여 반환하게 설정한다.
+
 ## [Medium-3376-InorderTraversal](./medium/3376-inorder-traversal.ts)
