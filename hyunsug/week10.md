@@ -1,6 +1,6 @@
 # Week 10
 
-## [Medium-3188-TupleToNestedObject](./medium-3188-tuple-to-nested-object.ts)
+## [Medium-3188-TupleToNestedObject](./medium/3188-tuple-to-nested-object.ts)
 
 ```ts
 type TupleToNestedObject<T extends readonly string[], U> = T extends [
