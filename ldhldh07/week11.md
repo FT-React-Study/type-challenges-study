@@ -81,47 +81,12 @@ type Result2 = Fibonacci<8> // 21
 ```
 
 ```ts
-/*
-  4182 - Fibonacci Sequence
-  -------
-  by windliang (@wind-liang) #보통
-
-  ### 질문
-
-  Implement a generic `Fibonacci<T>` that takes a number `T` and returns its corresponding [Fibonacci number](https://en.wikipedia.org/wiki/Fibonacci_number).
-
-  The sequence starts:
-  1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, ...
-
-  For example
-  ```ts
-  type Result1 = Fibonacci<3> // 2
-  type Result2 = Fibonacci<8> // 21
-  ```
-
-  > GitHub에서 보기: https://tsch.js.org/4182/ko
-*/
-
-/* _____________ 여기에 코드 입력 _____________ */
-
-type Fibonacci<T extends number> = any
-
-/* _____________ 테스트 케이스 _____________ */
-import type { Equal, Expect } from '@type-challenges/utils'
-
 type cases = [
   Expect<Equal<Fibonacci<1>, 1>>,
   Expect<Equal<Fibonacci<2>, 1>>,
   Expect<Equal<Fibonacci<3>, 2>>,
   Expect<Equal<Fibonacci<8>, 21>>,
 ]
-
-/* _____________ 다음 단계 _____________ */
-/*
-  > 정답 공유하기: https://tsch.js.org/4182/answer/ko
-  > 정답 보기: https://tsch.js.org/4182/solutions
-  > 다른 문제들: https://tsch.js.org/ko
-*/
 ```
 
 
@@ -156,3 +121,77 @@ type Fibonacci<
 
 
 그리고 Count가 T가 될때까지 더하고 저장하고를 반복했다.
+
+
+
+## AllCombinations
+
+Implement type `AllCombinations<S>` that return all combinations of strings which use characters from `S` at most once.
+
+For example:
+
+```ts
+type AllCombinations_ABC = AllCombinations<'ABC'>;
+// should be '' | 'A' | 'B' | 'C' | 'AB' | 'AC' | 'BA' | 'BC' | 'CA' | 'CB' | 'ABC' | 'ACB' | 'BAC' | 'BCA' | 'CAB' | 'CBA'
+```
+
+```ts
+type cases = [
+  Expect<Equal<AllCombinations<''>, ''>>,
+  Expect<Equal<AllCombinations<'A'>, '' | 'A'>>,
+  Expect<Equal<AllCombinations<'AB'>, '' | 'A' | 'B' | 'AB' | 'BA'>>,
+  Expect<Equal<AllCombinations<'ABC'>, '' | 'A' | 'B' | 'C' | 'AB' | 'AC' | 'BA' | 'BC' | 'CA' | 'CB' | 'ABC' | 'ACB' | 'BAC' | 'BCA' | 'CAB' | 'CBA'>>,
+  Expect<Equal<AllCombinations<'ABCD'>, '' | 'A' | 'B' | 'C' | 'D' | 'AB' | 'AC' | 'AD' | 'BA' | 'BC' | 'BD' | 'CA' | 'CB' | 'CD' | 'DA' | 'DB' | 'DC' | 'ABC' | 'ABD' | 'ACB' | 'ACD' | 'ADB' | 'ADC' | 'BAC' | 'BAD' | 'BCA' | 'BCD' | 'BDA' | 'BDC' | 'CAB' | 'CAD' | 'CBA' | 'CBD' | 'CDA' | 'CDB' | 'DAB' | 'DAC' | 'DBA' | 'DBC' | 'DCA' | 'DCB' | 'ABCD' | 'ABDC' | 'ACBD' | 'ACDB' | 'ADBC' | 'ADCB' | 'BACD' | 'BADC' | 'BCAD' | 'BCDA' | 'BDAC' | 'BDCA' | 'CABD' | 'CADB' | 'CBAD' | 'CBDA' | 'CDAB' | 'CDBA' | 'DABC' | 'DACB' | 'DBAC' | 'DBCA' | 'DCAB' | 'DCBA'>>,
+]
+
+```
+
+
+
+### 첫번째 접근
+
+```ts
+type AllCombinations<S extends string, DuplicatedS extends string = S> =
+  [S] extends [never]
+    ? ''
+    : S | '' extends DuplicatedS | ''
+      ? `${S}${AllCombinations<Exclude<DuplicatedS, S>>}`
+      : never;
+```
+
+Permutation을 흉내내어 답을 만들어봤다.
+
+
+
+일단 문자열이 유니온이 아니여서 문제가 있었고
+
+공백을 최종 답에 더해줘야 하는 문제가 있었다
+
+
+
+### 정답
+
+```ts
+type AllCombinations<S extends string, UnionS extends string = StringToUnion<S>> =
+  [S] extends [never]
+    ? ''
+    : { [K in UnionS]: `${K}${AllCombinations<Exclude<UnionS, K>>}`}[UnionS] | '';
+```
+
+Map을 이용해서 마킹하고 재귀하는 방식이 정답이었다.
+
+이 방식도 이 방식 자체를 학습해야할 필요가 느껴졌다
+
+이 경우 맵의 계층을 통해 각 값별로 경우를 만들고
+
+최종적으로 모든 원소의 값을 []를 통해 넣어주면서 map에 있는 모든 값을 유니온 값으로 반환한다,.
+
+
+
+#### [T] extends [never] 복습
+
+이 조건식의 기능은 재귀를 종료시켜주는 것이다.  Exclude<Possible, T>가 never가 되면 재귀를 종료 해야하며 이때 T가 [never]인지 판단해야 한다.
+
+근데 T가 never인지 판단한때 T는 유니온 타입이기 때문에 분배법칙을 하고 그러면 재귀의 올바른 동작을 하지 못한다.
+
+그렇게 때문에 [T]로 만들어서 분배 법칙이 일어나지 않고 비교할 수 있도록 해주는 식이다.
