@@ -17,6 +17,53 @@ type Flip<T extends Record<any, any>> = {
 
 ## [Medium-4182-FibonacciSequence](./medium/4182-fibonacci-sequence.ts)
 
+- 최초 접근 방식
+- 피보나치 수열의 기본적인 정의와 타입스크립트에서 숫자를 다루기 위한 `Array['length']`를 이용하여 접근한 방법
+- 이는 재귀 깊이 제한으로 타입 시스템만으로는 구현될 수 없음
+
+```ts
+type Pop<T extends readonly any[]> = T extends [...infer F, infer _] ? F : [];
+
+type NumberToUnknownArray<
+  T extends number,
+  ArrResult extends unknown[] = []
+> = ArrResult["length"] extends T
+  ? ArrResult
+  : NumberToUnknownArray<T, [...ArrResult, unknown]>;
+
+type Plus<A extends number, B extends number> = [
+  ...NumberToUnknownArray<A>,
+  ...NumberToUnknownArray<B>
+]["length"];
+
+type Fibonacci<T extends number> = T extends 0
+  ? 0
+  : T extends 1
+  ? 1
+  : Plus<
+      Fibonacci<Pop<NumberToUnknownArray<T>>["length"]>,
+      Fibonacci<Pop<Pop<NumberToUnknownArray<T>>["length"]>>
+    >;
+```
+
+```ts
+type Fibonacci<
+  T extends number,
+  FibonacciStep extends unknown[] = [1],
+  FMinus1 extends unknown[] = [1],
+  FMinus2 extends unknown[] = []
+> = FibonacciStep["length"] extends T
+  ? FMinus1["length"]
+  : Fibonacci<T, [...FibonacciStep, 1], [...FMinus1, ...FMinus2], FMinus1>;
+```
+
+- 위의 이중 재귀 방식은 재귀 깊이 제한으로 인해 타입 시스템만으로는 구현될 수 없었음
+- 이 방식은 일종의 반복문으로 이해할 수 있음
+- 추가 제너릭을 이용하여 `FibonacciStep`에서 `F(n)`을 단계적으로 계산하고
+- `FMinus1`과 `FMinus2`를 이용하여 `F(n - 1)`과 `F(n - 2)`를 계산하여 단계별로 처리하도록 함
+- 단, 계산의 시작 지점에서 `F(N - 1)`, `F(N - 2)` 역할을 하며, 다음 단계로 넘어가는 `falsy condition`에서는 `F(N)`, `F(N - 1)`이 되어 다음 단계의 `F(N - 1)`, `F(N - 2)` 역할을 하게 된다.
+- 즉, 최종적으로 `Step`이 T에 도달하게 되면 `FMinus1`은 구하고자 했던 `F(N)`이 된다.
+
 ## [Medium-4260-Nomiwase](./medium/4260-nomiwase.ts)
 
 ## [Medium-4426-GreaterThan](./medium/4426-greater-than.ts)
