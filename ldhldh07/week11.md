@@ -195,3 +195,166 @@ Map을 이용해서 마킹하고 재귀하는 방식이 정답이었다.
 근데 T가 never인지 판단한때 T는 유니온 타입이기 때문에 분배법칙을 하고 그러면 재귀의 올바른 동작을 하지 못한다.
 
 그렇게 때문에 [T]로 만들어서 분배 법칙이 일어나지 않고 비교할 수 있도록 해주는 식이다.
+
+
+
+## 4425 Greater than
+
+In This Challenge, You should implement a type `GreaterThan<T, U>` like `T > U`
+
+Negative numbers do not need to be considered.
+
+For example
+
+```ts
+GreaterThan<2, 1> //should be true
+GreaterThan<1, 1> //should be false
+GreaterThan<10, 100> //should be false
+GreaterThan<111, 11> //should be true
+```
+
+```ts
+type cases = [
+  Expect<Equal<GreaterThan<1, 0>, true>>,
+  Expect<Equal<GreaterThan<5, 4>, true>>,
+  Expect<Equal<GreaterThan<4, 5>, false>>,
+  Expect<Equal<GreaterThan<0, 0>, false>>,
+  Expect<Equal<GreaterThan<10, 9>, true>>,
+  Expect<Equal<GreaterThan<20, 20>, false>>,
+  Expect<Equal<GreaterThan<10, 100>, false>>,
+  Expect<Equal<GreaterThan<111, 11>, true>>,
+  Expect<Equal<GreaterThan<1234567891011, 1234567891010>, true>>,
+]
+```
+
+
+
+### 문제 분석
+
+두개의 제네릭 중에 첫번째 제네릭이 더 클 경우 true를, 같거나 작을 경우 false를 반환한다
+
+
+
+### 첫번째 접근
+
+```ts
+type GreaterThan<T extends number, U extends number, Count extends Array<any> = []> = 
+  Count['length'] extends T
+    ? false
+    : Count['length'] extends U
+      ? true
+      : GreaterThan<T, U, [...Count, any]>
+```
+
+count를 하나씩 늘려가면서 T가 먼저 해당될 경우 false를 U를 해당될 경우 true를 반환했다.
+
+
+
+하지만 재귀 횟수 때문에 마지막 케이스가 오류가 떴다.
+
+
+
+### 두번째 접근
+
+```ts
+type StringToArray<T extends string> = 
+  T extends `${infer First}${infer Rest}`
+    ? [First, ...StringToArray<Rest>]
+    : []
+
+type StringToNumber<S extends string> = S extends `${infer N extends number}` ? N : never;
+
+type GreaterThanOne<T extends number, U extends number, Count extends Array<any> = []> = 
+  Count['length'] extends T
+    ? false
+    : Count['length'] extends U
+      ? true
+      : GreaterThanOne<T, U, [...Count, any]>
+
+type GreaterThanArray<T extends Array<any>, U extends Array<any>> = 
+  T extends [infer FirstOfT, ...infer RestOfT]
+    ? U extends [infer FirstOfU, ...infer RestOfU]
+      ? FirstOfT extends FirstOfU
+        ? GreaterThanArray<RestOfT, RestOfU>
+        : FirstOfT extends string
+          ? FirstOfU extends string
+            ? GreaterThanOne<StringToNumber<FirstOfT>, StringToNumber<FirstOfU>>
+            : never
+          : never
+      : never
+    : never
+
+
+type GreaterThan<
+  T extends number, 
+  U extends number, 
+  ArrayT extends Array<string> = StringToArray<`${T}`>,
+  ArrayU extends Array<string> = StringToArray<`${U}`>
+> = 
+  ArrayT['length'] extends ArrayU['length']
+    ? GreaterThanArray<ArrayT, ArrayU>
+    : GreaterThanOne<ArrayT['length'], ArrayU['length']>
+```
+
+배열의 길이로 측정해서
+
+배열이 길면 그게 긴걸로 하고
+
+배열이 같은 경우 앞자리에서부터 하나씩 비교하는 걸로 했다.
+
+
+
+근데 이 경우 4번째, 6번째 케이스가 안됐다
+
+같은 값을 비교했을때의 처리가 안됐다. 
+
+
+
+### 세번째 접근 - 정답
+
+```ts
+type StringToArray<T extends string> = 
+  T extends `${infer First}${infer Rest}`
+    ? [First, ...StringToArray<Rest>]
+    : []
+
+type StringToNumber<S extends string> = S extends `${infer N extends number}` ? N : never;
+
+type GreaterThanOne<T extends number, U extends number, Count extends Array<any> = []> = 
+  Count['length'] extends T
+    ? false
+    : Count['length'] extends U
+      ? true
+      : GreaterThanOne<T, U, [...Count, any]>
+
+type GreaterThanArray<T extends Array<any>, U extends Array<any>> = 
+  T extends []
+    ? false
+    : T extends [infer FirstOfT, ...infer RestOfT]
+      ? U extends [infer FirstOfU, ...infer RestOfU]
+        ? FirstOfT extends FirstOfU
+          ? GreaterThanArray<RestOfT, RestOfU>
+          : FirstOfT extends string
+            ? FirstOfU extends string
+              ? GreaterThanOne<StringToNumber<FirstOfT>, StringToNumber<FirstOfU>>
+              : never
+            : never
+        : never
+      : never;
+
+
+type GreaterThan<
+  T extends number, 
+  U extends number, 
+  ArrayT extends Array<string> = StringToArray<`${T}`>,
+  ArrayU extends Array<string> = StringToArray<`${U}`>
+> = 
+  ArrayT['length'] extends ArrayU['length']
+    ? GreaterThanArray<ArrayT, ArrayU>
+    : GreaterThanOne<ArrayT['length'], ArrayU['length']>
+```
+
+그래서 같은 값일 경우의 처리도 해줬다.
+
+
+
