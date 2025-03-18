@@ -198,7 +198,7 @@ Map을 이용해서 마킹하고 재귀하는 방식이 정답이었다.
 
 
 
-## 4425 Greater than
+## Greater than
 
 In This Challenge, You should implement a type `GreaterThan<T, U>` like `T > U`
 
@@ -357,4 +357,45 @@ type GreaterThan<
 그래서 같은 값일 경우의 처리도 해줬다.
 
 
+
+## Zip
+
+In This Challenge, You should implement a type `Zip<T, U>`, T and U must be `Tuple`
+
+```ts
+type exp = Zip<[1, 2], [true, false]> // expected to be [[1, true], [2, false]]
+```
+
+```ts
+type cases = [
+  Expect<Equal<Zip<[], []>, []>>,
+  Expect<Equal<Zip<[1, 2], [true, false]>, [[1, true], [2, false]]>>,
+  Expect<Equal<Zip<[1, 2, 3], ['1', '2']>, [[1, '1'], [2, '2']]>>,
+  Expect<Equal<Zip<[], [1, 2, 3]>, []>>,
+  Expect<Equal<Zip<[[1, 2]], [3]>, [[[1, 2], 3]]>>,
+]
+```
+
+
+
+### 문제분석
+
+두개의 배열을 받아 같은 index를 가진 원소들을 배열로 묶은 배열을 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type Zip<T extends Array<any>, U extends Array<any> > = 
+  U extends [infer FirstOfU, ...infer RestOfU]
+    ? T extends [infer FirstOfT, ...infer RestOfT]
+      ? [[FirstOfT, FirstOfU], ...Zip<RestOfT, RestOfU>]
+      : []
+    : []
+```
+
+두개를 쪼갠다음에 묶어서 재귀를 했다.
+
+U가 배열수 최소한의 기준이기 때문에  U를 먼저 extends 했다.
 
