@@ -399,3 +399,109 @@ type Zip<T extends Array<any>, U extends Array<any> > =
 
 U가 배열수 최소한의 기준이기 때문에  U를 먼저 extends 했다.
 
+
+
+## IsTuple
+
+Implement a type `IsTuple`, which takes an input type `T` and returns whether `T` is tuple type.
+
+For example:
+
+```ts
+type case1 = IsTuple<[number]> // true
+type case2 = IsTuple<readonly [number]> // true
+type case3 = IsTuple<number[]> // false
+```
+
+```ts
+type cases = [
+  Expect<Equal<IsTuple<[]>, true>>,
+  Expect<Equal<IsTuple<[number]>, true>>,
+  Expect<Equal<IsTuple<readonly [1]>, true>>,
+  Expect<Equal<IsTuple<{ length: 1 }>, false>>,
+  Expect<Equal<IsTuple<number[]>, false>>,
+  Expect<Equal<IsTuple<never>, false>>,
+]
+```
+
+
+
+### 문제 분석
+
+튜플이 맞는지 판별해서 boolean 값을 반환하는 유틸리티 타입이다
+
+
+
+### 첫번째 접근
+
+```ts
+type IsTuple<T> = 
+  T extends Readonly<Array<any>> 
+    ? T['length'] extends any
+      ? true
+      : false
+    : false
+```
+
+튜플의 성질이 readonly인거랑 'length'가 존재한다는 것이라 생각해 두가지 extends로 해봤다.
+
+하지만 이 경우에도 5,6번째 케이스가 true로 됐다.
+
+
+
+### 두번째 접근 
+
+```ts
+type IsTuple<T> = 
+  T extends readonly any[]
+    ? number extends T['length'] 
+      ? false 
+      : true
+    : false;
+```
+
+
+
+#### number extends T['length'] 
+
+일반 배열일때는 해당 배열에 ['length']를 붙였을 때 number를 반환한다.
+
+이를 필터링하기 위해 
+
+```ts
+T['length'] extends number ? false : true  
+```
+
+를 하려고 했지만
+
+일반 숫자도 number에 extends가 된다
+
+그래서 number를 T['length']에 extends해야했다.
+
+
+
+더 큰 범주의 타입에만 필터링을 하고자 하고 작은 범위일 경우 거짓으로 하고자 하면 extends 뒤에 그 값을 배치해야 한다는 개념을 익힐 수 있었다.
+
+
+
+하지만 이 경우에도 never에는 적용이 되지 않았다.
+
+
+
+### 세번째 접근 - 정답
+
+```ts
+type IsTuple<T> = 
+  [T] extends [never]
+    ? false
+    : T extends readonly any[]
+      ? number extends T['length'] 
+        ? false 
+        : true
+      : false;
+```
+
+그래서 never만 따로 경우의 수로 처리해줬다.
+
+
+
