@@ -66,6 +66,52 @@ type Fibonacci<
 
 ## [Medium-4260-Nomiwase](./medium/4260-nomiwase.ts)
 
+- 문자열 S를 나눠 만들 수 있는 모든 조합 + 빈 문자열의 유니언을 반환하는 문제
+
+```ts
+type StringToUnion<S extends string> = S extends `${infer F}${infer R}`
+  ? F | StringToUnion<R>
+  : never;
+```
+
+- 문자열을 나눠 유니언으로 변환하는 `StringToUnion` 타입을 이용한다
+
+```ts
+type AllCombinations<S extends string, U extends string = StringToUnion<S>> = [
+  U
+] extends [never]
+  ? ""
+  : "" | { [K in U]: `${K}${AllCombinations<never, Exclude<U, K>>}` }[U];
+```
+
+- `[U] extends [never]`를 재귀 종료 조건으로 설정한다 (TS 분배에서의 never 처리 방식)
+- `U`가 처음에 `never`로 평가됨은 빈 문자열인 경우이므로 빈 문자열만을 반환한다
+- 아닌 경우 분배된 `U`에 생성가능한 조합이 추가된 문자열을 유니언에 더한다
+- { [K in U]: `${K}${AllCombinations<never, Exclude<U, K>>}` }[U]는
+- `K in U`로 U의 각 문자에 대해 Mapped Type 객체를 생성
+- 이 객체는 "AB"를 예로 들면 다음과 같이 생성됨
+  - { A: "A" + AllCombinations<never, "B">, B: "B" + AllCombinations<never, "A"> }
+  - 이를 Object[keyof Object]로 분배하면
+  - "A" | "A" + AllCombinations<never, "B"> | "B" + AllCombinations<never, "A"> | "B"의 형태가 되고,
+  - ""까지 포함한 유니언이 최종 결과가 된다.
+- 각 K에 대해 현재 문자 K와 나머지 문자열로 가능한 모든 조합을 연결
+- `Exclude<U, K>`는 유니언 중 현재 재귀 단계에서 처리대상인 K를 제외한 문자열
+
+### Example (string: "AB")
+
+1. StringToUnion<"AB"> = "A" | "B"
+2. 분배된 A, B에 대해
+
+- K = "A": "A" + AllCombinations<never, "B">
+- K = "B": "B" + AllCombinations<never, "A">
+
+2. 풀어보면
+
+- "A" + ("" | "B") = "A" | "AB"
+- "B" + ("" | "A") = "B" | "BA"
+
+3. 결과: "" | "A" | "AB" | "B" | "BA"
+
 ## [Medium-4426-GreaterThan](./medium/4426-greater-than.ts)
 
 ## [Medium-4471-Zip](./medium/4471-zip.ts)
