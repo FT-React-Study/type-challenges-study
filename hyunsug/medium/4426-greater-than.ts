@@ -33,13 +33,13 @@ type CompareDigit<
     : never
   : never;
 
-type CompareDigitLoop<
+type CompareDigitByDigit<
   T extends string,
   U extends string
 > = T extends `${infer TFirst}${infer TRest}`
   ? U extends `${infer UFirst}${infer URest}`
     ? TFirst extends UFirst
-      ? CompareDigitLoop<TRest, URest>
+      ? CompareDigitByDigit<TRest, URest>
       : CompareDigit<TFirst, UFirst>
     : true // U가 먼저 끝나면 T가 더 큰 것으로 간주
   : false; // T가 먼저 끝나면 T는 더 작음
@@ -51,6 +51,6 @@ type GreaterThan<T extends number, U extends number> = CompareStringLength<
   ? true
   : CompareStringLength<NumberToString<T>, NumberToString<U>> extends "less"
   ? false
-  : CompareDigitLoop<NumberToString<T>, NumberToString<U>>;
+  : CompareDigitByDigit<NumberToString<T>, NumberToString<U>>;
 
 type test = GreaterThan<1, 0>;
