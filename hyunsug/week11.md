@@ -207,3 +207,21 @@ type Zip<T extends any[], U extends any[]> = T extends [
 - 여기서 어느 쪽이든 원소의 수가 적은 경우 나머지는 빈 배열로 처리되어 나머지 긴 쪽의 원소는 제외된다.
 
 ## [Medium-4484-IsTuple](./medium/4484-is-tuple.ts)
+
+```ts
+type IsTuple<T> = [T] extends [never]
+  ? false
+  : T extends readonly any[]
+  ? number extends T["length"]
+    ? false
+    : true
+  : false;
+```
+
+- `[T] extends [never]`로 `never` false로 처리
+- `T extends readonly any[]`로 배열 형식임을 확인
+- `number extends T["length"]`는 해당 배열의 길이가 `number` 타입인지, 숫자 리터럴인지 확인한다
+- 숫자 리터럴이면 number는 보다 큰 범위이므로 extends를 만족하지 않는다
+- 따라서, 배열의 길이가 숫자 리터럴인 튜플은 falsy 조건을 만족하여 true
+- number 타입을 갖는 일반 배열은 truthy 조건을 만족하여 false로 처리된다.
+- 배열 형식이 아니라면 false
