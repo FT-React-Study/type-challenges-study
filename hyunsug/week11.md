@@ -114,6 +114,80 @@ type AllCombinations<S extends string, U extends string = StringToUnion<S>> = [
 
 ## [Medium-4426-GreaterThan](./medium/4426-greater-than.ts)
 
+- Array.length 메소드를 이용하여 숫자를 다루려 했으나 예제에 큰 수가 존재하여 이는 재귀깊이 제한이 걸린다
+- 따라서, 앞서 사용한 적 있는 문자열로 변환하는 방식을 이용하여 풀이하기로 했다.
+
+- 기본적인 방식은 다음처럼 접근했다.
+
+1. 자릿수를 비교한다
+2. 자릿수가 같다면 큰 자리수부터 차례로 비교를 진행한다
+3. 비교 결과를 반환한다.
+
+```ts
+type NumberToString<T extends number> = `${T}`;
+
+type CompareStringLength<
+  T extends string,
+  U extends string
+> = T extends `${infer _}${infer TRest}`
+  ? U extends `${infer _}${infer URest}`
+    ? CompareStringLength<TRest, URest>
+    : "greater" // U가 먼저 끝나면 T가 더 큰 것으로 간주
+  : U extends `${infer _}${infer _}`
+  ? "less" // T가 먼저 끝나면 T는 더 작음
+  : "same";
+
+type DigitCompareMap = {
+  "0": [false, false, false, false, false, false, false, false, false, false];
+  "1": [true, false, false, false, false, false, false, false, false, false];
+  "2": [true, true, false, false, false, false, false, false, false, false];
+  "3": [true, true, true, false, false, false, false, false, false, false];
+  "4": [true, true, true, true, false, false, false, false, false, false];
+  "5": [true, true, true, true, true, false, false, false, false, false];
+  "6": [true, true, true, true, true, true, false, false, false, false];
+  "7": [true, true, true, true, true, true, true, false, false, false];
+  "8": [true, true, true, true, true, true, true, true, false, false];
+  "9": [true, true, true, true, true, true, true, true, true, false];
+};
+
+type CompareDigit<
+  T extends string,
+  U extends string
+> = T extends keyof DigitCompareMap
+  ? U extends keyof DigitCompareMap
+    ? DigitCompareMap[T][U]
+    : never
+  : never;
+
+type CompareDigitLoop<
+  T extends string,
+  U extends string
+> = T extends `${infer TFirst}${infer TRest}`
+  ? U extends `${infer UFirst}${infer URest}`
+    ? TFirst extends UFirst
+      ? CompareDigitLoop<TRest, URest>
+      : CompareDigit<TFirst, UFirst>
+    : true // U가 먼저 끝나면 T가 더 큰 것으로 간주
+  : false; // T가 먼저 끝나면 T는 더 작음
+
+type GreaterThan<T extends number, U extends number> = CompareStringLength<
+  NumberToString<T>,
+  NumberToString<U>
+> extends "greater"
+  ? true
+  : CompareStringLength<NumberToString<T>, NumberToString<U>> extends "less"
+  ? false
+  : CompareDigitLoop<NumberToString<T>, NumberToString<U>>;
+```
+
+- `CompareStringLength`는 문자열의 길이를 비교한다.
+- T와 U를 하나씩 끊어가며 남은 문자열의 길이에 기반하여 비교를 진행하며, T가 truthy인데 U가 falsy인 경우 (T가 더 긴 경우) true를 반환하는 방식이다.
+- `CompareDigit`은 `DigitCompareMap`을 이용하여 각 자리수를 비교하며 T의 수가 key, U의 수가 value[index] 형태가 되어 보다 큰 수임을 판별하게 한다.
+- `CompareDigitLoop`은 하나씩 끊어가며 `CompareDigit`을 호출하여 비교하는 방식이다
+- 기본적으로, `TFirst extends UFirst`에서 두 수가 같다면 다음 루프로 넘어가고, 서로 다른 수라면
+- `CompareDigit`에서 비교하여 T 쪽이 더 큰지 혹은 같거나 작은지로 true/false를 반환한다.
+- `GreaterThan`은 이를 이용하여 1. 길이(자릿수) 비교 2. 높은 자리부터 순서대로 크기비교 를 진행하여 보다 큰 수를 판별한다.
+
 ## [Medium-4471-Zip](./medium/4471-zip.ts)
 
 ## [Medium-4484-IsTuple](./medium/4484-is-tuple.ts)
