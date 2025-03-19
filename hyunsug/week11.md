@@ -190,4 +190,20 @@ type GreaterThan<T extends number, U extends number> = CompareStringLength<
 
 ## [Medium-4471-Zip](./medium/4471-zip.ts)
 
+```ts
+type Zip<T extends any[], U extends any[]> = T extends [
+  infer THead,
+  ...infer TRest
+]
+  ? U extends [infer UHead, ...infer URest]
+    ? [[THead, UHead], ...Zip<TRest, URest>]
+    : []
+  : [];
+```
+
+- 두 배열이 주어지고, 각 배열의 원소를 하나씩 짝지어 배열로 만든다.
+- 단, T와 U의 길이가 다를 때 짝지어지지 않는 원소는 제외된다.
+- `infer` 키워드를 이용하여 각 배열을 앞에서부터 하나씩 끊어 짝으로 만들고 나머지는 재귀로 처리한다.
+- 여기서 어느 쪽이든 원소의 수가 적은 경우 나머지는 빈 배열로 처리되어 나머지 긴 쪽의 원소는 제외된다.
+
 ## [Medium-4484-IsTuple](./medium/4484-is-tuple.ts)
