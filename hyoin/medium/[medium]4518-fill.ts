@@ -19,12 +19,35 @@
 
 /* _____________ Your Code Here _____________ */
 
+type SliceTo<T extends any[], Idx extends number, Res extends any[] = []> = Idx extends 0
+  ? []
+  : [Res['length']] extends [Idx]
+    ? Res
+    : T extends [infer TF, ...infer TR]
+      ? SliceTo<TR, Idx, [...Res, TF]>
+      : Res
+
+type Slices<T extends unknown[], Start extends number, End extends number> = SliceTo<T, End> extends [...SliceTo<T, Start>, ...infer R]
+  ? R
+  : []
+
+type MakeArr<N, Length extends number, Res extends any[] = []> = Length extends 0
+  ? Res
+  : [Res['length']] extends [Length]
+    ? Res
+    : MakeArr<N, Length, [...Res, N]>
+
+
 type Fill<
-  T extends unknown[],
+  T extends any[],
   N,
   Start extends number = 0,
   End extends number = T['length'],
-> = any
+  Sliced extends any[] = Slices<T, Start, End>
+> = Sliced extends []
+  ? T 
+  : [...SliceTo<T,Start>, ...MakeArr<N, Sliced['length']>, ...Slices<T,End, T['length']>] 
+
 
 /* _____________ Test Cases _____________ */
 import type { Equal, Expect } from '@type-challenges/utils'
