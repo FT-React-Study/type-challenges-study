@@ -32,6 +32,35 @@ type Chunk<
 
 ## [Medium-4518-Fill](./medium/4518-fill.ts)
 
+```ts
+type Fill<
+  T extends readonly unknown[],
+  N,
+  Start extends number = 0,
+  End extends number = T["length"],
+  IsStart extends boolean = false,
+  Result extends readonly unknown[] = []
+> = T extends [infer F, ...infer Rest]
+  ? Start extends End
+    ? [...Result, ...T]
+    : IsStart extends false
+    ? Result["length"] extends Start
+      ? Fill<Rest, N, Start, End, true, [...Result, N]>
+      : Fill<Rest, N, Start, End, false, [...Result, F]>
+    : Result["length"] extends End
+    ? [...Result, ...T]
+    : Fill<Rest, N, Start, End, true, [...Result, N]>
+  : Result;
+```
+
+- `IsStart` 플래그를 추가하여 `Start`에서 교체가 시작되었는지 확인한다.
+- `Result`는 빈 배열로 초기화하여 결과값을 담을 배열로 사용한다.
+- `T`가 완전히 빈 배열이 된다면 `Result`를 반환한다. (마지막 줄, 탈출 조건)
+- 먼저 `T`를 첫 요소와 나머지로 나눈다. `Start`와 `End`가 동일한 수인 경우 교체가 일어나지 않으므로 그대로 반환한다.
+- `IsStart`가 false이면서, `Result["length"]`가 Start와 같아진 경우 `F` 대신 `N`을 넣고 재귀를 진행한다.
+- `IsStart`가 true이면서, `Result["length"]`가 End와 같아진 경우는 모든 교체가 끝난 것이므로 `Result`를 반환하되, `T`에 남은 요소가 있을 수 있으므로 이를 함께 반환한다.
+- `IsStart`가 true이면서, `Result["length"]`가 End와 같지 않다면 계속 교체를 진행한다.
+
 ## [Medium-4803-TrimRight](./medium/4803-trim-right.ts)
 
 ## [Medium-5117-Without](./medium/5117-without.ts)
