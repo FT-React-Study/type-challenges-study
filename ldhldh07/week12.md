@@ -1,5 +1,7 @@
 # week12
 
+## Chunk
+
 Do you know `lodash`? `Chunk` is a very useful function in it, now let's implement it. `Chunk<T, N>` accepts two required type parameters, the `T` must be a `tuple`, and the `N` must be an `integer >=1`
 
 ```ts
@@ -168,3 +170,45 @@ T extends [infer First, ...infer Rest]
 
 다시 답을 보니 Result가 어차피 인덱스에 따라 하나씩 추가될 것이기 때문에 가상의 배열이 필요없었고 Result로 대체했다.
 
+## Trim Right
+
+Implement `TrimRight<T>` which takes an exact string type and returns a new string with the whitespace ending removed.
+
+For example:
+
+```ts
+type Trimed = TrimRight<'   Hello World    '> // expected to be '   Hello World'
+```
+
+```ts
+type cases = [
+  Expect<Equal<TrimRight<'str'>, 'str'>>,
+  Expect<Equal<TrimRight<'str '>, 'str'>>,
+  Expect<Equal<TrimRight<'str     '>, 'str'>>,
+  Expect<Equal<TrimRight<'     str     '>, '     str'>>,
+  Expect<Equal<TrimRight<'   foo bar  \n\t '>, '   foo bar'>>,
+  Expect<Equal<TrimRight<''>, ''>>,
+  Expect<Equal<TrimRight<'\n\t '>, ''>>,
+]
+```
+
+
+
+### 문제 분석
+
+오른쪽의 공백을 없에주는 유틸리티 함수이다
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type TrimRight<S extends string> = 
+  S extends `${infer Head}${' '|'\n'|`\t`}` 
+    ? TrimRight<Head> 
+    : S
+```
+
+
+
+예전에 한 trim과 같은 방식으로 했더니 됐다.
