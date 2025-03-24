@@ -212,3 +212,42 @@ type TrimRight<S extends string> =
 
 
 예전에 한 trim과 같은 방식으로 했더니 됐다.
+
+
+
+## Without
+
+Implement the type version of Lodash.without, Without<T, U> takes an Array T, number or array U and returns an Array without the elements of U.
+
+```ts
+type Res = Without<[1, 2], 1>; // expected to be [2]
+type Res1 = Without<[1, 2, 4, 1, 5], [1, 2]>; // expected to be [4, 5]
+type Res2 = Without<[2, 3, 2, 3, 2, 3, 2, 3], [2, 3]>; // expected to be []
+```
+
+
+
+```ts
+type cases = [
+  Expect<Equal<Without<[1, 2], 1>, [2]>>,
+  Expect<Equal<Without<[1, 2, 4, 1, 5], [1, 2]>, [4, 5]>>,
+  Expect<Equal<Without<[2, 3, 2, 3, 2, 3, 2, 3], [2, 3]>, []>>,
+]
+```
+
+### 문제분석
+
+T의 배열에서 원소가 U인 경우 해당 원소를 뺀다
+
+### 첫번째 접근 - 정답
+
+```ts
+type Without<T, U> = 
+  T extends [infer First, ...infer Rest]
+    ? First extends U 
+      ? Without<Rest, U>
+      : [First, ...Without<Rest, U>]
+    : [First, ...Without<Rest, U>]
+```
+
+T의 원소 하나씩 보면서 U면 없에면서 재귀
