@@ -251,3 +251,72 @@ type Without<T, U> =
 ```
 
 T의 원소 하나씩 보면서 U면 없에면서 재귀
+
+
+
+## Trunc
+
+Implement the type version of `Math.trunc`, which takes string or number and returns the integer part of a number by removing any fractional digits.
+
+For example:
+
+```ts
+type A = Trunc<12.34> // 12
+```
+
+```ts
+type cases = [
+  Expect<Equal<Trunc<0.1>, '0'>>,
+  Expect<Equal<Trunc<0.2>, '0'>>,
+  Expect<Equal<Trunc<1.234>, '1'>>,
+  Expect<Equal<Trunc<12.345>, '12'>>,
+  Expect<Equal<Trunc<-5.1>, '-5'>>,
+  Expect<Equal<Trunc<'.3'>, '0'>>,
+  Expect<Equal<Trunc<'1.234'>, '1'>>,
+  Expect<Equal<Trunc<'-.3'>, '-0'>>,
+  Expect<Equal<Trunc<'-10.234'>, '-10'>>,
+  Expect<Equal<Trunc<10>, '10'>>,
+]
+```
+
+### 문제분석
+
+소숫점을 떼서 문자열로 반환하는 유틸리티 함수이다
+
+
+
+### 첫번째 접근
+
+```ts
+type Trunc<T extends string | number | bigint | boolean | null | undefined, Result extends string = ''> =
+  `${T}` extends `${infer First}${infer Rest}`
+    ? First extends '.'
+      ? Result
+      : Trunc<Rest, `${Result}${First}`>
+    : Result
+```
+
+문자열 하나씩 하다가 `.` 만나면 반환하게 했다.
+
+몇개 케이스가 안됐다. `.`으로 시작하는 케이스랑 음수였다.
+
+
+
+### 두번째 접근
+
+```ts
+type Trunc<
+  T extends string | number | bigint | boolean | null | undefined, 
+  Result extends string = '', 
+  prefix extends string = ''
+> =
+  `${T}` extends `-${infer N}`
+    ? Trunc<N, Result, '-'>
+    : `${T}` extends `${infer First}${infer Rest}`
+      ? First extends '.'
+        ? `${prefix}${Result extends '' ? '0' : Result}`
+        : Trunc<Rest, `${Result}${First}`, prefix>
+      : `${prefix}${Result}`
+```
+
+해당 두 경우에 대해 처리를 해줬다.
