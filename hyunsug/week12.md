@@ -121,3 +121,27 @@ type Trunc<T extends string | number> =
 - 나머지 정수부가 분리된 경우는 그대로 반환한다.
 
 ## [Medium-5153-IndexOf](./medium/5153-indexof.ts)
+
+```ts
+type Same<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B
+  ? 1
+  : 2
+  ? true
+  : false;
+
+type IndexOf<
+  T extends readonly unknown[],
+  U,
+  Count extends any[] = []
+> = T extends [infer F, ...infer Rest]
+  ? Same<F, U> extends true
+    ? Count["length"]
+    : IndexOf<Rest, U, [...Count, 0]>
+  : -1;
+```
+
+- `Same` 타입은 두 타입이 동일한지를 확인한다. 이 때, 타입을 나타내는 문자열 자체가 동일한지를 확인하기 위해 함수 형태를 사용한다. (`Equal` 타입이 이렇게 구현되어 있다.)
+- `Same` 타입을 활용하는 이유는 `number` 타입이 튜플에 들어있고 이를 찾아내고자 할 때 `F extends number`가 아니라 `Same<F, number>`를 이용하여 `"number"`라고 쓰여지는 그 자체를 찾아야 하기 때문이다.
+- 1, 2 등도 `F extends number`에서 `true`가 되어 정확하게 찾고자 하는 값을 찾을 수 없다.
+- 다른 예시로는 `any`를 찾고자 할 때 `F extends any`는 어떤 경우에도 성립하기 때문에 함수에 기반한 형태로 찾아야 한다.
+- `Count`는 빈 배열로 초기화하고 재귀를 진행하며 크기를 키워 현재의 인덱스를 카운트한다.
