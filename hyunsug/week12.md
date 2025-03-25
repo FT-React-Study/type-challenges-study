@@ -75,6 +75,33 @@ type TrimRight<S extends string> = S extends `${infer Rest}${Space}`
 
 ## [Medium-5117-Without](./medium/5117-without.ts)
 
+```ts
+type CreateUnion<
+  T extends number | unknown[],
+  Union extends any[] = []
+> = T extends number
+  ? T
+  : T extends [infer F, ...infer Rest]
+  ? CreateUnion<Rest, [...Union, F]>
+  : Union[number];
+
+type Without<
+  T extends readonly any[],
+  U extends number | any[],
+  Union extends any[] = CreateUnion<U>
+> = T extends [infer F, ...infer Rest]
+  ? F extends Union
+    ? Without<Rest, U, Union>
+    : [F, ...Without<Rest, U, Union>]
+  : T;
+```
+
+- `lodash`의 `without` 함수는 Array에서 특정 요소들을 제거하는 함수이다.
+- `CreateUnion` 타입은 `U`의 요소들을 Union 타입으로 변환한다.
+- `Without`의 `T`는 배열로 주어지기에 `[infer F, ...infer Rest]`로 나누어 재귀를 진행한다.
+- `F`가 `Union`에 속하는지 확인하고 속한다면 제외한 나머지 배열에 대해 진행하고, 속하지 않는다면 결과에 포함시킨다.
+- 마지막으로 `T`가 빈 배열이 되면 모든 재귀가 끝난 것이므로 결과를 반환한다.
+
 ## [Medium-5140-Trunc](./medium/5140-trunc.ts)
 
 ## [Medium-5153-IndexOf](./medium/5153-indexof.ts)
