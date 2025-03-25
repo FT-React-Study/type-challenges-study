@@ -320,3 +320,80 @@ type Trunc<
 ```
 
 해당 두 경우에 대해 처리를 해줬다.
+
+
+
+## IndexOf
+
+Implement the type version of Array.indexOf, indexOf<T, U> takes an Array T, any U and returns the index of the first U in Array T.
+
+```ts
+type Res = IndexOf<[1, 2, 3], 2>; // expected to be 1
+type Res1 = IndexOf<[2,6, 3,8,4,1,7, 3,9], 3>; // expected to be 2
+type Res2 = IndexOf<[0, 0, 0], 2>; // expected to be -1
+```
+
+```	ts
+type cases = [
+  Expect<Equal<IndexOf<[1, 2, 3], 2>, 1>>,
+  Expect<Equal<IndexOf<[2, 6, 3, 8, 4, 1, 7, 3, 9], 3>, 2>>,
+  Expect<Equal<IndexOf<[0, 0, 0], 2>, -1>>,
+  Expect<Equal<IndexOf<[string, 1, number, 'a'], number>, 2>>,
+  Expect<Equal<IndexOf<[string, 1, number, 'a', any], any>, 4>>,
+  Expect<Equal<IndexOf<[string, 'a'], 'a'>, 1>>,
+  Expect<Equal<IndexOf<[any, 1], 1>, 1>>,
+]
+```
+
+
+
+### 문제 분석
+
+배열 T에서 U와 같은 원소의 가장 첫번째 인덱스 값을 반환한다.
+
+
+
+### 첫번째 접근
+
+```ts
+type IndexOf<T, U, Index extends Array<any> = []> = 
+  T extends [infer First, ...infer Rest]
+    ? [U] extends [First]
+      ? Index['length']
+      : IndexOf<Rest, U, [...Index, any]>
+    : -1
+```
+
+하나씩 배열에서 빼서 체크하고 인덱스는 배열에 하나씩 더하면서 그 length값으로 처리한다
+
+
+
+근데 extends에 더 상위 개념이 있을 때의 값을 처리하지 못해 케이스 5, 6, 7번이 통과가 안됐다
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type IndexOf<T, U, IndexArray extends Array<any> = []> = 
+  T extends [infer First, ...infer Rest]
+    ? (<A>() => A extends U ? 1 : 2) extends
+      (<A>() => A extends First ? 1 : 2)
+      ? IndexArray['length']
+      : IndexOf<Rest, U, [...IndexArray, any]>
+    : -1
+```
+
+예전에 봤던 Equal 로직 다시 복기하면서 썼다.
+
+
+
+#### equal
+
+```ts
+export type Equal<X, Y> =
+  (<T>() => T extends X ? 1 : 2) extends
+  (<T>() => T extends Y ? 1 : 2) ? true : false
+```
+
+복습했다.
