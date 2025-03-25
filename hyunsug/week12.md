@@ -63,6 +63,16 @@ type Fill<
 
 ## [Medium-4803-TrimRight](./medium/4803-trim-right.ts)
 
+```ts
+type Space = " " | "\n" | "\t";
+type TrimRight<S extends string> = S extends `${infer Rest}${Space}`
+  ? TrimRight<Rest>
+  : S;
+```
+
+- [TrimLeft](./medium/106-trim-left.ts) 문제와 유사하다.
+- 동일하게 `Space` 타입을 정의하고, 이번엔 문자열의 뒤에서 `Space` 템플릿 리터럴 매칭을 통해 재귀를 진행하여 `Space`가 없을 때까지 반복한다.
+
 ## [Medium-5117-Without](./medium/5117-without.ts)
 
 ## [Medium-5140-Trunc](./medium/5140-trunc.ts)
