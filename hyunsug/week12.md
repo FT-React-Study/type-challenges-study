@@ -104,4 +104,20 @@ type Without<
 
 ## [Medium-5140-Trunc](./medium/5140-trunc.ts)
 
+```ts
+type Trunc<T extends string | number> =
+  `${T}` extends `${infer Integer}.${infer _}`
+    ? Integer extends ""
+      ? "0"
+      : Integer extends `-`
+      ? "-0"
+      : Integer
+    : `${T}`;
+```
+
+- `Math.trunc` 함수는 소수점 이하를 버리는 함수이다.
+- 문자열로 변환하여 템플릿 리터럴 매칭을 진행하고 정수부를 떼어낸다.
+- 이 때, 빈 문자열이 된다면 `0`을 (소수부만 존재하는 `.xxx` 형태) 반환하고, - 부호만 남는 (`-.xxx`) 형태는 `-0`을 반환한다.
+- 나머지 정수부가 분리된 경우는 그대로 반환한다.
+
 ## [Medium-5153-IndexOf](./medium/5153-indexof.ts)
