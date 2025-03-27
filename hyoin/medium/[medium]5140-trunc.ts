@@ -21,7 +21,9 @@
 type Trunc<T extends number|string> = `${T}` extends `${infer TS}.${infer TE}`
   ? TS extends ''
     ? '0'
-    : TS
+    : TS extends '-'
+      ? '-0'
+      : TS
   : `${T}`
 
 /* _____________ Test Cases _____________ */
