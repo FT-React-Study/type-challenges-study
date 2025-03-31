@@ -94,3 +94,75 @@ type LastIndexOf<T, U, IndexArray extends Array<any> = [], Result extends number
 ```
 
 그냥 인덱스는 U에 해당하는 원소가 나오면 바로 인덱스를 반환했다. lastIndexof는 그 대신 result에다가 U와 같은 원소의 인덱스 값을 갱신하고 보존한다. 그리고 순회가 다 끝나면 그때 마지막으로 u랑 일치했던 인덱스값을 반환한다.
+
+
+
+## Unique
+
+Implement the type version of Lodash.uniq, Unique takes an Array T, returns the Array T without repeated values.
+
+```ts
+type Res = Unique<[1, 1, 2, 2, 3, 3]>; // expected to be [1, 2, 3]
+type Res1 = Unique<[1, 2, 3, 4, 4, 5, 6, 7]>; // expected to be [1, 2, 3, 4, 5, 6, 7]
+type Res2 = Unique<[1, "a", 2, "b", 2, "a"]>; // expected to be [1, "a", 2, "b"]
+type Res3 = Unique<[string, number, 1, "a", 1, string, 2, "b", 2, number]>; // expected to be [string, number, 1, "a", 2, "b"]
+type Res4 = Unique<[unknown, unknown, any, any, never, never]>; // expected to be [unknown, any, never]
+```
+
+```ts
+type cases = [
+  Expect<Equal<Unique<[1, 1, 2, 2, 3, 3]>, [1, 2, 3]>>,
+  Expect<Equal<Unique<[1, 2, 3, 4, 4, 5, 6, 7]>, [1, 2, 3, 4, 5, 6, 7]>>,
+  Expect<Equal<Unique<[1, 'a', 2, 'b', 2, 'a']>, [1, 'a', 2, 'b']>>,
+  Expect<Equal<Unique<[string, number, 1, 'a', 1, string, 2, 'b', 2, number]>, [string, number, 1, 'a', 2, 'b']>>,
+  Expect<Equal<Unique<[unknown, unknown, any, any, never, never]>, [unknown, any, never]>>,
+]
+```
+
+
+
+
+
+### 문제 분석
+
+배열을 받아서 겹치는 원소들을 하나로 바꾸고 반환한다
+
+
+
+### 첫번째 접근
+
+map을 이용해서 해결하려고 했다
+
+```ts
+type Unique<T, Map = {}> = 
+  T extends [infer First, ...infer Rest]
+    ? First extends keyof Map
+      ? Unique<Rest, Map>
+      : Unique<Rest, Map & { [K in First]: true}>
+    : Map
+```
+
+이 타입의 문제는 맵의 key로 들어가려면 string, number, symbol이라는 프로퍼티키 타입만 가능한데 여기에는 string, any등도 배열안에 들어갈 수 있다
+
+
+
+### 두번째 접근
+
+```ts
+type IsContained<T extends Array<any>, A> = 
+  T extends [infer First, ...infer Rest] 
+    ? (<B>() => B extends A ? 1 : 2) extends
+      (<B>() => B extends First ? 1 : 2)
+      ? true
+      : IsContained<Rest, A>
+    : false
+
+type Unique<T, Result extends Array<any> = []> = 
+  T extends [infer First, ...infer Rest]
+    ? IsContained<Result, First> extends true
+      ? Unique<Rest, Result>
+      : Unique<Rest, [...Result, First]>
+    : Result
+```
+
+그래서 그냥 배열을 하나씩 다 체크하면서 이미 포함된 경우 결과 값에 포한하지 않는 방식으로 진행했다.
