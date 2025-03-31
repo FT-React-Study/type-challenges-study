@@ -146,7 +146,7 @@ type Unique<T, Map = {}> =
 
 
 
-### 두번째 접근
+### 두번째 접근 - 정답
 
 ```ts
 type IsContained<T extends Array<any>, A> = 
@@ -166,3 +166,121 @@ type Unique<T, Result extends Array<any> = []> =
 ```
 
 그래서 그냥 배열을 하나씩 다 체크하면서 이미 포함된 경우 결과 값에 포한하지 않는 방식으로 진행했다.
+
+
+
+## maptypes
+
+Implement `MapTypes<T, R>` which will transform types in object T to different types defined by type R which has the following structure
+
+```
+type StringToNumber = {
+  mapFrom: string; // value of key which value is string
+  mapTo: number; // will be transformed for number
+}
+```
+
+
+
+## Examples:
+
+
+
+```ts
+type StringToNumber = { mapFrom: string; mapTo: number;}
+MapTypes<{iWillBeANumberOneDay: string}, StringToNumber> // gives { iWillBeANumberOneDay: number; }
+```
+
+
+
+Be aware that user can provide a union of types:
+
+```ts
+type StringToNumber = { mapFrom: string; mapTo: number;}
+type StringToDate = { mapFrom: string; mapTo: Date;}
+MapTypes<{iWillBeNumberOrDate: string}, StringToDate | StringToNumber> // gives { iWillBeNumberOrDate: number | Date; }
+```
+
+
+
+If the type doesn't exist in our map, leave it as it was:
+
+```ts
+type StringToNumber = { mapFrom: string; mapTo: number;}
+MapTypes<{iWillBeANumberOneDay: string, iWillStayTheSame: Function}, StringToNumber> // // gives { iWillBeANumberOneDay: number, iWillStayTheSame: Function }
+```
+
+```ts
+type cases = [
+  Expect<Equal<MapTypes<{ stringToArray: string }, { mapFrom: string, mapTo: [] }>, { stringToArray: [] }>>,
+  Expect<Equal<MapTypes<{ stringToNumber: string }, { mapFrom: string, mapTo: number }>, { stringToNumber: number }>>,
+  Expect<Equal<MapTypes<{ stringToNumber: string, skipParsingMe: boolean }, { mapFrom: string, mapTo: number }>, { stringToNumber: number, skipParsingMe: boolean }>>,
+  Expect<Equal<MapTypes<{ date: string }, { mapFrom: string, mapTo: Date } | { mapFrom: string, mapTo: null }>, { date: null | Date }>>,
+  Expect<Equal<MapTypes<{ date: string }, { mapFrom: string, mapTo: Date | null }>, { date: null | Date }>>,
+  Expect<Equal<MapTypes<{ fields: Record<string, boolean> }, { mapFrom: Record<string, boolean>, mapTo: string[] }>, { fields: string[] }>>,
+  Expect<Equal<MapTypes<{ name: string }, { mapFrom: boolean, mapTo: never }>, { name: string }>>,
+  Expect<Equal<MapTypes<{ name: string, date: Date }, { mapFrom: string, mapTo: boolean } | { mapFrom: Date, mapTo: string }>, { name: boolean, date: string }>>,
+]	
+```
+
+
+
+### 문제 분석
+
+R에 mapFrom, mapTo가 있어서 mapFrom의 벨류값이 T의 값들중에 맞는게 있으면 mapTo의 벨류로 바꾼다
+
+
+
+### 첫번째 접근
+
+```ts
+type MapTypes<T, R extends {mapFrom: any, mapTo: any}> = 
+  {[K in keyof T]: T[K] extends R['mapFrom'] ? R['mapTo'] : T[K]}
+```
+
+R을 한정해주고 매핑타입으로 제한해주었다
+
+이 경우 R['mapFrom']이 유니온타입으로 들어가서 마지막 케이스가 제대로 작동하지 않았다
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type NeverToOriginalValue<T, OriginalT> = 
+  {[K in keyof T]: T[K] extends never ? K extends keyof OriginalT ? OriginalT[K] : never : T[K] }
+
+type MapTypes<T, R extends {mapFrom: any, mapTo: any}> = 
+  NeverToOriginalValue<{[K in keyof T]: 
+      R extends any
+        ? T[K] extends R['mapFrom'] 
+          ? R['mapTo']
+          : never
+        : never
+  }, T>
+
+```
+
+유니온 값을 분배 법칙을 사용해서 각각 쓸때 유니온 타입 중에 해당하지 않는건 제외하기 위해 never를 사용했다.
+
+다만 이때 아무것도 해당하지 않을때 never를 반환해주는데 그 경우 기존의 값을 쓰도록 했다.
+
+
+
+### 또다른 정답
+
+```ts
+type MapTo<V, R extends {mapFrom: any, mapTo: any}> = 
+  R extends any
+  ? V extends R['mapFrom']
+    ? R['mapTo']
+    : never
+  : never
+
+type MapTypes<T, R extends { mapFrom: any; mapTo: any }> = {
+  [K in keyof T]:
+    MapTo<T[K], R> extends never ? T[K] : MapTo<T[K], R>
+}
+```
+
+mapTo를 분배법칙하는걸 따로 유틸리티 타입을 만들고 never체크를 전체 유틸리티 타입에서 하는것이 더 자연스럽고 최적화된 로직이었다.
