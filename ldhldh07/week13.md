@@ -330,3 +330,50 @@ type ConstructTuple<L extends number, Result extends Array<any> = []> =
 length를 측정해가면서 계속 unknown을 추가했다
 
 1000일때 에러가 나도록 케이스가 되어있는데 이런 구현시 에러가 났다 재귀 제한이 1000번에 걸려있나보다.
+
+
+
+## Number Range
+
+Sometimes we want to limit the range of numbers... For examples.
+
+```ts
+type result = NumberRange<2 , 9> //  | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 
+```
+
+```ts
+type cases = [
+  Expect<Equal<NumberRange<2, 9>, Result1>>,
+  Expect<Equal<NumberRange<0, 2>, Result2>>,
+  Expect<Equal<NumberRange<0, 140>, Result3>>,
+]
+```
+
+
+
+### 문제분석
+
+L부터 H까지의 숫자가 포함된 유니언 타입을 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type NumberRange<
+  L, 
+  H, 
+  CountArray extends Array<any> = [], 
+  IsInRange extends Boolean = false,
+  Result = never
+> =
+  CountArray['length'] extends H
+    ? Result | CountArray['length']
+    : IsInRange extends true
+      ? NumberRange<L, H, [any, ...CountArray], true, Result | CountArray['length']>
+      : CountArray['length'] extends L
+        ? NumberRange<L, H, [any, ...CountArray], true, Result | CountArray['length']>
+        : NumberRange<L, H, [any, ...CountArray], false, Result>
+```
+
+fill의 로직이랑 비슷하게 결과 숫자를 만들어줄 배열 타입과 flag값을 하나 넣어서 경우의 수별로 result를 만들어갔다
