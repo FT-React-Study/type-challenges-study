@@ -90,6 +90,37 @@ type LastIndexOf<
 
 ## [Medium-5360-Unique](./medium/5360-unique.ts)
 
+```ts
+type Same<A, B> = (<T>() => T extends A ? 1 : 2) extends <P>() => P extends B
+  ? 1
+  : 2
+  ? true
+  : false;
+
+type Includes<T extends readonly unknown[], U> = T extends [
+  infer First,
+  ...infer Rest
+]
+  ? Same<First, U> extends true
+    ? true
+    : Includes<Rest, U>
+  : false;
+
+type Unique<
+  T extends readonly unknown[],
+  Uniques extends unknown[] = []
+> = T extends [infer First, ...infer Rest]
+  ? Includes<Uniques, First> extends true
+    ? Unique<Rest, Uniques>
+    : Unique<Rest, [...Uniques, First]>
+  : Uniques;
+```
+
+- `Same` 타입 계속 이용
+- `Includes` 타입: 튜플 T에서 U가 존재하는지를 확인하는 타입으로 재귀적으로 `Same`을 이용해 비교
+- `Unique` 타입에서 `Uniques`는 빈 배열로 초기화하고 유니크한 원소를 담는 배열로 이용
+- `Inlcudes<Uniques, First>`를 반복하며 유니크 원소 배열에 현재 떼어낸 원소가 포함되는지를 반복하며 빈 배열이 될 때까지 반복한다
+
 ## [Medium-5821-MapTypes](./medium/5821-maptypes.ts)
 
 ## [Medium-7544-ConstructTuple](./medium/7544-construct-tuple.ts)
