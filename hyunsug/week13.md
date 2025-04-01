@@ -60,6 +60,34 @@ type Join<
 
 ## [Medium-5317-LastIndexOf](./medium/5317-lastindexof.ts)
 
+```ts
+type Same<A, B> = (<T>() => T extends A ? 1 : 2) extends <P>() => P extends B
+  ? 1
+  : 2
+  ? true
+  : false;
+type Pop<T extends readonly unknown[]> = T extends [...infer Rest, infer _]
+  ? Rest
+  : [];
+
+// Popped는 마지막 원소의 index를 표시하는 배열열
+type LastIndexOf<
+  T extends readonly unknown[],
+  U,
+  Popped extends readonly unknown[] = Pop<T>
+> = T extends [...infer Rest, infer Last]
+  ? Same<Last, U> extends true
+    ? Popped["length"]
+    : LastIndexOf<Rest, U, Pop<Popped>>
+  : -1;
+```
+
+- `Same` 타입은 챌린지 전반에 이용되는 보다 정교한 타입비교를 위해 이용
+- `Pop` 타입은 `Array.pop` 메서드의 구현형태
+- `LastIndexOf`의 `Popped` 타입은 마지막 원소를 제거한 원래 배열로, `Array.length - 1`을 통해 마지막 원소의 index를 구하는 방식을 차용하기 위해 사용했다.
+- 원래 배열을 마지막에서부터 `Same`을 이용해 비교하며 `Popped` 튜플의 길이를 통해 그 인덱스를 찾아가도록 했다
+- T가 남지 않을 때 -1을 반환하도록 하여 찾을 수 없는 경우를 처리하도록 했다
+
 ## [Medium-5360-Unique](./medium/5360-unique.ts)
 
 ## [Medium-5821-MapTypes](./medium/5821-maptypes.ts)
