@@ -284,3 +284,49 @@ type MapTypes<T, R extends { mapFrom: any; mapTo: any }> = {
 ```
 
 mapTo를 분배법칙하는걸 따로 유틸리티 타입을 만들고 never체크를 전체 유틸리티 타입에서 하는것이 더 자연스럽고 최적화된 로직이었다.
+
+
+
+## Contsruct Tuple
+
+Construct a tuple with a given length.
+
+For example
+
+```
+type result = ConstructTuple<2> // expect to be [unknown, unkonwn]
+```
+
+```ts
+type cases = [
+  Expect<Equal<ConstructTuple<0>, []>>,
+  Expect<Equal<ConstructTuple<2>, [unknown, unknown]>>,
+  Expect<Equal<ConstructTuple<999>['length'], 999>>,
+  // @ts-expect-error
+  Expect<Equal<ConstructTuple<1000>['length'], 1000>>,
+]
+```
+
+
+
+### 문제 분석
+
+unknown으로 구성되어 입력받은 제네릭만큼의 길이를 가지는 유플을 반환해야 한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type ConstructTuple<L extends number, Result extends Array<any> = []> = 
+  Result['length'] extends L
+    ? Result
+    : ConstructTuple<L, [unknown, ...Result]>
+
+```
+
+
+
+length를 측정해가면서 계속 unknown을 추가했다
+
+1000일때 에러가 나도록 케이스가 되어있는데 이런 구현시 에러가 났다 재귀 제한이 1000번에 걸려있나보다.
