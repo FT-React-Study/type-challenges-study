@@ -123,6 +123,37 @@ type Unique<
 
 ## [Medium-5821-MapTypes](./medium/5821-maptypes.ts)
 
+```ts
+type MapTypes<
+  T extends { [key: keyof any]: any },
+  R extends { mapFrom: any; mapTo: any }
+> = {
+  [K in keyof T]: T[K] extends R["mapFrom"] ? R["mapTo"] : T[K];
+};
+```
+
+- 첫 번째 접근: `T[K] extends R["mapFrom"]`을 통해 타입일치 시 `R["mapTo"]`를 반환하고 아니면 원래 타입 이용용
+
+```ts
+type MapTypes<
+  T extends { [key: keyof any]: any },
+  R extends { mapFrom: any; mapTo: any }
+> = {
+  [K in keyof T]: T[K] extends R["mapFrom"]
+    ? R extends { mapFrom: T[K] }
+      ? R["mapTo"]
+      : never
+    : T[K];
+};
+```
+
+- 첫번째 방법은 R이 유니언인 경우 `mapFrom`이 Union Type이 되는 경우가 발생
+- `MapTypes<{ name: string, date: Date }, { mapFrom: string, mapTo: boolean } | { mapFrom: Date, mapTo: string }>`
+- 위의 예시에서 에러가 발생했고 이를 뜯어보면 R이 유니언인 경우 아래와 같이 타입이 정의되었음
+- `{mapFrom: string | Date, mapTo: boolean | string}`
+- 이 때, `T[K] extends R["mapFrom"]` 조건에서 name의 string이 mapFrom의 string과 매치되어 `R["mapTo"]`의 `string | boolean`이 된다 `date: Date` 또한 마찬가지로 `Date`와 매치되어 `string | boolean`이 된다
+- 해결방식은 `T[K] extends R["mapFrom"]`을 사용 후 `R extends { mapFrom: T[K] }` 조건을 통해 유니언 R의 각 요소에 대해 검증을 진행하는 방식을 취할 수 있다
+
 ## [Medium-7544-ConstructTuple](./medium/7544-construct-tuple.ts)
 
 ## [Medium-8640-NumberRange](./medium/8640-number-range.ts)
