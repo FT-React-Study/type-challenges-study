@@ -169,3 +169,24 @@ type ConstructTuple<
 - 큰 수에 대해서도 생성하는 것을 고려한다면 다른 방향으로의 접근이 필요할것
 
 ## [Medium-8640-NumberRange](./medium/8640-number-range.ts)
+
+```ts
+type NumberRange<
+  L extends number,
+  H extends number,
+  Count extends unknown[] = [],
+  Result extends number = never,
+  Flag extends boolean = Count["length"] extends L ? true : false
+> = Flag extends true
+  ? Count["length"] extends H
+    ? Result | Count["length"]
+    : NumberRange<L, H, [...Count, unknown], Result | Count["length"], Flag>
+  : NumberRange<L, H, [...Count, unknown]>;
+```
+
+- `Count`: 숫자증가
+- `Result`: 누적된 숫자 유니언
+- `Flag`: Count가 증가하는 과정에 L <= Count 조건을 만족했음을 알리는 표지
+- `Flag extends true`일 시 H에 도달했는지를 체크하고 H에 도달했다면 여태까지의 유니언과 마지막 Count (H)를 포함한 유니언을 반환
+- H에 도달하지 않았다면 Count를 늘리고, 유니언에 늘리기 전 Count['length']를 추가하고 Flag는 그대로 넘긴다
+- Flag가 false일 시 Count만 늘리고 Result와 Flag는 초기화 조건이 다시 실행되게 함
