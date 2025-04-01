@@ -156,4 +156,16 @@ type MapTypes<
 
 ## [Medium-7544-ConstructTuple](./medium/7544-construct-tuple.ts)
 
+```ts
+type ConstructTuple<
+  L extends number,
+  T extends unknown[] = []
+> = T["length"] extends L ? T : ConstructTuple<L, [unknown, ...T]>;
+```
+
+- 재귀적으로 Tuple을 생성하는 방식
+- 예시가 1000에는 `@ts-expect-error`를 부여해두었고 999에는 성공하도록 요구하고 있어 재귀가 깊어지면 실패하는게 조건
+- 따라서, 단순하게 재귀를 통해 튜플생성하는 것으로 해결이 가능한 문제
+- 큰 수에 대해서도 생성하는 것을 고려한다면 다른 방향으로의 접근이 필요할것
+
 ## [Medium-8640-NumberRange](./medium/8640-number-range.ts)
