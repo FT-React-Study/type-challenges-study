@@ -1,5 +1,7 @@
 ## [medium] 5317. Last Index Of
 
+> View on GitHub: https://tsch.js.org/5317
+
 #### 문제
 
 Implement the type version of `Array.lastIndexOf`, `LastIndexOf<T, U>` takes an Array `T`, any `U` and returns the index of the last `U` in Array `T`

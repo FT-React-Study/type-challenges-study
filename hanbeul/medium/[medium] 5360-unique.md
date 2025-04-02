@@ -1,5 +1,7 @@
 ## [medium] 5360. Unique
 
+> View on GitHub: https://tsch.js.org/5360
+
 #### 문제
 
 Implement the type version of `Lodash.uniq`, `Unique<T>` takes an Array `T`, returns the Array `T` without repeated values.
