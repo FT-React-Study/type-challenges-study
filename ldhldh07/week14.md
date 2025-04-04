@@ -80,3 +80,66 @@ Exclude와 분배법칙, 재귀를 사용해야하겠다는 생각은 했는데 
 
 
 분배벅칙을 돌리고 분배된 기존 값과 재귀돌린 경우를 유니온으로 합쳐서 조합의 원리를 구성했다.
+
+
+
+## Subsequence
+
+Given an array of unique elements, return all possible subsequences.
+
+A subsequence is a sequence that can be derived from an array by deleting some or no elements without changing the order of the remaining elements.
+
+For example:
+
+```ts
+type A = Subsequence<[1, 2]> // [] | [1] | [2] | [1, 2]
+```
+
+```ts
+type cases = [
+  Expect<Equal<Subsequence<[1, 2]>, [] | [1] | [2] | [1, 2]>>,
+  Expect<Equal<Subsequence<[1, 2, 3]>, [] | [1] | [2] | [1, 2] | [3] | [1, 3] | [2, 3] | [1, 2, 3]>>,
+  Expect<Equal<Subsequence<[1, 2, 3, 4, 5]>, [] |
+  [1] | [2] | [3] | [4] | [5] |
+  [1, 2] | [1, 3] | [1, 4] | [1, 5] | [2, 3] | [2, 4] | [2, 5] | [3, 4] | [3, 5] | [4, 5] |
+  [1, 2, 3] | [1, 2, 4] | [1, 2, 5] | [1, 3, 4] | [1, 3, 5] | [1, 4, 5] | [2, 3, 4] | [2, 3, 5] | [2, 4, 5] | [3, 4, 5] |
+  [1, 2, 3, 4] | [1, 2, 3, 5] | [1, 2, 4, 5] | [1, 3, 4, 5] | [2, 3, 4, 5] |
+  [1, 2, 3, 4, 5] >>,
+  Expect<Equal<Subsequence<['a', 'b', 'c']>, [] |
+  ['a'] | ['b'] | ['c'] |
+  ['a', 'b'] | ['a', 'c'] | ['b', 'c'] |
+  ['a', 'b', 'c'] >>,
+  Expect<Equal<Subsequence<['x', 'y']>, [] |
+  ['x'] | ['y'] |
+  ['x', 'y'] >>,
+]
+```
+
+### 문제분석
+
+집합의 부분집합을 모두 구하는 것이다
+
+
+
+원소별로 존재하는지 안존재하는지 두가지 경우가 n개 존재한다
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type Subsequence<T extends any[], Result extends any[] = []> =
+  T extends [infer First, ...infer Rest]
+    ? Rest extends any[]
+      ? Subsequence<Rest, [...Result, First] | Result >
+      : never
+    :Result
+```
+
+이전 combination에서 이 개념으로 시도했던 적이 있어서 그대로 구현했다.
+
+원소를 하나씩 분리한다음에 기존 집합과 기존 집합에 분리된 원소를 더한걸 유니언으로 만든 답을 넣어 재귀하는 것을 반복했다.
+
+
+
+이 경우 기존의 result는 해당 원소가 안들어간 경우 [...Result, First]는 이 원소가 들어간 경우로 나뉘고 나뉜채로 재귀가 되기 때문에 모든 경우의 수가 result에 유니언으로 포함이 된다.
