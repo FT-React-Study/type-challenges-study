@@ -73,6 +73,29 @@ type CheckRepeatedChars<
 
 ## [Medium-9286-FirstUniqueCharIndex](./medium/9286-first-unique-char-index.ts)
 
+```ts
+type FirstUniqueCharIndex<
+  T extends string,
+  C extends string[] = []
+> = T extends ""
+  ? -1
+  : T extends `${infer F}${infer R}`
+  ? F extends C[number]
+    ? FirstUniqueCharIndex<R, [...C, F]>
+    : R extends `${string}${F}${string}`
+    ? FirstUniqueCharIndex<R, [...C, F]>
+    : C["length"]
+  : never;
+```
+
+- 문자열 인덱스 문제는 우선 현재 인덱스를 찾기 위한 튜플 length를 활용해야지 라는 생각으로 `C extends string[] = []`를 생성했다.
+- 우선 모든 문자열 순회가 끝난 경우 혹은 빈 문자열인 경우 -1을 반환하도록 한다.
+- 문자열을 `${infer F}${infer R}` 형태로 나누어 첫 문자와 나머지 문자열로 분리한다.
+- 첫 문자가 `C[number]` 즉, 이미 나왔던 문자라면 그 문자를 포함하여 다시 재귀를 진행한다.
+- 나온 적이 없다면 다음을 진행한다.
+- 우선 나머지 문자열에 대해서 `${string}${F}${string}` 형태로 패턴 매칭을 진행하고 여기서 존재한다면 그 문자는 반복 문자이므로 위와 동일하게 재귀를 진행한다.
+- 여기서 패턴매칭이 되지 않는다면 비 중복 문자이므로 현재까지의 튜플의 길이를 통해 인덱스를 반환한다.
+
 ## [Medium-9616-ParseURLParams](./medium/9616-parse-url-params.ts)
 
 ## [Medium-9896-GetMiddleElement](./medium/9896-get-middle-element.ts)
