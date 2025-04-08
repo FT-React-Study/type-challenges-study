@@ -111,3 +111,18 @@ type ParseUrlParams<T> = T extends `${string}:${infer R}`
 - 여기서 R이 다시 나뉘어지는 형태인 경우 뒷부분을 재귀를 진행하고, 아니라면 R을 반환하는 형태가 된다.
 
 ## [Medium-9896-GetMiddleElement](./medium/9896-get-middle-element.ts)
+
+```ts
+type GetMiddleElement<T> = T extends [infer F, ...infer R, infer L]
+  ? R extends []
+    ? [F, L]
+    : GetMiddleElement<R>
+  : T;
+```
+
+- 배열의 중간 원소만을 찾는 방식이다.
+- 짝수/홀수 구분을 하면서 진행해야 하나 싶다가 배열 분리 방식이 앞과 뒤가 있다는 점이 생각났다.
+- 앞과 뒤를 동시에 보면서 남은 부분을 R로 지정한다
+- R이 빈 배열이 되어버리면 `[F, L]`을 반환하고
+- 아니라면 F와 L을 제외하고 재귀를 진행한다.
+- 길이가 0 혹은 1인 배열은 F, R, L 셋의 매칭을 진행할 수 없으므로 원본 배열을 반환한다.
