@@ -34,6 +34,27 @@ type Combi<T extends string[]> = CombiHelper<T[number]>;
 
 ## [Medium-8987-Subsequence](./medium/8987-subsequence.ts)
 
+```ts
+type Subsequence<T extends any[]> = T extends [infer F, ...infer R]
+  ? [F, ...Subsequence<R>] | Subsequence<R>
+  : [];
+```
+
+- T를 나누어 재귀를 취하되, 첫번째 원소를 포함하는 경우와 포함하지 않는 경우를 유니언으로 생성한다
+- 빈 배열 시 탈출조건을 취하고
+- 생성되는 결과들은 탈출조건으로 생성된 빈 배열들을 포함하여 모든 부분 수열을 포함하게 된다
+
+```js
+/* 예시: Subsequence<[1, 2]>의 전개 과정 */
+// Subsequence<[1, 2]>
+// = [1, ...Subsequence<[2]>] | Subsequence<[2]>
+// = [1, ...([2, ...Subsequence<[]>] | Subsequence<[]>)] | [2, ...Subsequence<[]>] | Subsequence<[]>
+// = [1, ...([2, ...[]] | [])] | [2, ...[]] | []
+// = [1, ...[2] | []] | [2] | []
+// = [1, 2] | [1] | [2] | []
+// = [] | [1] | [2] | [1, 2]
+```
+
 ## [Medium-9142-CheckRepeatedChars](./medium/9142-check-repeated-chars.ts)
 
 ## [Medium-9286-FirstUniqueCharIndex](./medium/9286-first-unique-char-index.ts)
