@@ -143,3 +143,51 @@ type Subsequence<T extends any[], Result extends any[] = []> =
 
 
 이 경우 기존의 result는 해당 원소가 안들어간 경우 [...Result, First]는 이 원소가 들어간 경우로 나뉘고 나뉜채로 재귀가 되기 때문에 모든 경우의 수가 result에 유니언으로 포함이 된다.
+
+
+
+## CheckRepeatedChars
+
+Implement type `CheckRepeatedChars<S>` which will return whether type `S` contains duplicated chars?
+
+For example:
+
+```ts
+type CheckRepeatedChars<'abc'>   // false
+type CheckRepeatedChars<'aba'>   // true
+```
+
+```ts
+type cases = [
+  Expect<Equal<CheckRepeatedChars<'abc'>, false>>,
+  Expect<Equal<CheckRepeatedChars<'abb'>, true>>,
+  Expect<Equal<CheckRepeatedChars<'cbc'>, true>>,
+  Expect<Equal<CheckRepeatedChars<''>, false>>,
+]
+```
+
+
+
+### 문제 분석
+
+문자열중에 반복되는 문자열이 있는 경우에 따라 참 거짓을 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type CheckRepeatedChars<T extends string> = 
+  T extends `${infer First}${infer Rest}`
+    ? Rest extends `${infer _}${First}${infer _}`
+      ? true
+      : CheckRepeatedChars<Rest>
+    : false
+
+```
+
+가장 쉽게 생각이 난 것은 하나씩 떼고 뒤에 있는지 따진 후에 남은 값들로 재귀를 돌리는 것이었다.
+
+이때 문자열 하나를 떼고 뒷부분에 그 문자열이 있는지 확인하는 작업을 처음에는 단순히 다 체크하려 했다.
+
+하지만 그 대신 infer를 이용했다. 해당 근제를 넣고 앞뒤에 infer를 넣어서 이 문자열이 extends 가 되는지 여부로 해당 로직을 구성했다.
