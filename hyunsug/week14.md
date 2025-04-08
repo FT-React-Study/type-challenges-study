@@ -98,4 +98,16 @@ type FirstUniqueCharIndex<
 
 ## [Medium-9616-ParseURLParams](./medium/9616-parse-url-params.ts)
 
+```ts
+type ParseUrlParams<T> = T extends `${string}:${infer R}`
+  ? R extends `${infer P}/${infer RR}`
+    ? P | ParseUrlParams<RR>
+    : R
+  : never;
+```
+
+- 이어서 문자열 패턴 매칭을 활용하는 문제이다
+- `${string}:${infer R}` 형태로 나누어, params 구조를 가지는 부분 앞부분을 잘라낸다.
+- 여기서 R이 다시 나뉘어지는 형태인 경우 뒷부분을 재귀를 진행하고, 아니라면 R을 반환하는 형태가 된다.
+
 ## [Medium-9896-GetMiddleElement](./medium/9896-get-middle-element.ts)
