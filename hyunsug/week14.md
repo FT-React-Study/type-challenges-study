@@ -57,6 +57,20 @@ type Subsequence<T extends any[]> = T extends [infer F, ...infer R]
 
 ## [Medium-9142-CheckRepeatedChars](./medium/9142-check-repeated-chars.ts)
 
+```ts
+type CheckRepeatedChars<
+  T extends string,
+  U extends string = ""
+> = T extends `${infer F}${infer R}`
+  ? F extends U
+    ? true
+    : CheckRepeatedChars<R, U | F>
+  : false;
+```
+
+- `U`를 빈 문자로 초기화 한 후, 첫 문자와 유니언을 비교하기를 반복하며 나왔던 문자를 보관하도록 한다
+- `F extends U` 조건에서 유니언에 포함된 문자와 `extends` 조건을 통해 비교하고 있다면 true, 아니라면 유니언에 추가하는 식으로 재귀를 진행한다.
+
 ## [Medium-9286-FirstUniqueCharIndex](./medium/9286-first-unique-char-index.ts)
 
 ## [Medium-9616-ParseURLParams](./medium/9616-parse-url-params.ts)
