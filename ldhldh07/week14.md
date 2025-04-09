@@ -258,3 +258,67 @@ type FirstUniqueCharIndex<
 
 결과적으로 문자 하나씩 검사를 하면서 앞뒤 문자열을 템플릿 리터럴로 함친 문자열에 infer로 포함이 되어있는지 하나씩 체크하는 방식이 되었다.
 
+
+
+## ParseUrlParams
+
+You're required to implement a type-level parser to parse URL params string into an Union.
+
+```ts
+ParseUrlParams<':id'> // id
+ParseUrlParams<'posts/:id'> // id
+ParseUrlParams<'posts/:id/:user'> // id | user
+```
+
+```ts
+type cases = [
+  Expect<Equal<ParseUrlParams<''>, never>>,
+  Expect<Equal<ParseUrlParams<':id'>, 'id'>>,
+  Expect<Equal<ParseUrlParams<'posts/:id'>, 'id'>>,
+  Expect<Equal<ParseUrlParams<'posts/:id/'>, 'id'>>,
+  Expect<Equal<ParseUrlParams<'posts/:id/:user'>, 'id' | 'user'>>,
+  Expect<Equal<ParseUrlParams<'posts/:id/:user/like'>, 'id' | 'user'>>,
+]
+```
+
+### 문제 분석
+
+url의 파라미터를 분해해서 유니온 타입으로 반환한다.
+
+`:`뒤에 있으며 `/`로 구분된 문자열을 분리하면 된다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type ParseUrlParams<
+  T, 
+  Temp extends string = "", 
+  Result extends string = never,
+  IsParam extends boolean = false,
+> =
+  T extends `${infer First}${infer Rest}`
+    ? First extends '/'
+      ? ParseUrlParams<Rest, "", Result | (Temp extends "" ? never : Temp), false>
+      : IsParam extends true
+        ? ParseUrlParams<Rest, `${Temp}${First}`, Result, true>
+        : First extends ':'
+          ? ParseUrlParams<Rest, "", Result, true>
+          : ParseUrlParams<Rest, "", Result, false>
+    : Result | (Temp extends "" ? never : Temp)
+```
+
+
+
+제네릭으로는 임시 문자열과 결과 저장하는 문자 유니언 타입, 현재 파라미터 문자열 영역에 있는지 판단하는 플래그 타입 하나를 지정했다
+
+그리고 경우의수 로직을 이렇게 구성했다
+
+`/`문자열인 경우 -> 현재 temp에 저장중인 문자열을 결과에 유니언 함수로 추가, 플래그는 false로 전환
+
+플래그가 true인 경우 -> temp로 저장된 문자열에 현재 First로 분리한 문자열을 추가, 플래그는 true 유지
+
+`:`문자열인 경우 -> 플래그를 true로 전환해서 이후 문자열들이 temp에 저장될 수 있도록 재귀
+
+위 경우에 해당하지 않는 경우 -> 플래그는 false로 저장하며 temp는 무관, Result도 유지한다
