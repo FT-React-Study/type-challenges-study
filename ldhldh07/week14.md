@@ -191,3 +191,70 @@ type CheckRepeatedChars<T extends string> =
 이때 문자열 하나를 떼고 뒷부분에 그 문자열이 있는지 확인하는 작업을 처음에는 단순히 다 체크하려 했다.
 
 하지만 그 대신 infer를 이용했다. 해당 근제를 넣고 앞뒤에 infer를 넣어서 이 문자열이 extends 가 되는지 여부로 해당 로직을 구성했다.
+
+
+
+## FirstUniqueCharIndex
+
+Given a string s, find the first non-repeating character in it and return its index. If it does not exist, return -1. (Inspired by [leetcode 387](https://leetcode.com/problems/first-unique-character-in-a-string/))
+
+```ts
+type cases = [
+  Expect<Equal<FirstUniqueCharIndex<'leetcode'>, 0>>,
+  Expect<Equal<FirstUniqueCharIndex<'loveleetcode'>, 2>>,
+  Expect<Equal<FirstUniqueCharIndex<'aabb'>, -1>>,
+  Expect<Equal<FirstUniqueCharIndex<''>, -1>>,
+  Expect<Equal<FirstUniqueCharIndex<'aaa'>, -1>>,
+]
+```
+
+### 문제 분석
+
+문자열에서 처음으로 혼자 존재하는 문자의 인덱스를 출력하는 유틸리티 함수이다
+
+
+
+### 첫번째 접근
+
+앞서 풀이한 CheckRepeatedChar와 같은 방식으로 접근했다
+
+```ts
+type FirstUniqueCharIndex<T extends string, IndexArray extends Array<any> = []> = 
+  T extends `${infer First}${infer Rest}`
+    ? Rest extends `${infer _}${First}${infer _}`
+      ? FirstUniqueCharIndex<Rest, [...IndexArray, any]>
+      : IndexArray['length']
+    : -1
+```
+
+문자열을 하나씩 뺀 다음에 뒤에 있는 문자열중에 해당 문자가 들어있는지 infer를 통해 확인했다.
+
+그래서 infer문이 extends 되지 않을 때, 즉 뒤에 해당 문자가 없을 때 array를 통해 1씩 증가시킨 index를 출력하도록 하였다
+
+
+
+이 때 문제가 Rest에서 겹친것 찾기 때문에 앞에 있는 문자가 repeated 되는 경우 이걸 체크하지 못하고 unique한 것으로 판단해버렸다
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type FirstUniqueCharIndex<
+  T extends string, 
+  IndexArray extends Array<any> = [], 
+  PrevString extends string = ""
+> 
+  = T extends `${infer First}${infer Rest}`
+    ? `${PrevString}${Rest}` extends `${infer _}${First}${infer _}`
+      ? FirstUniqueCharIndex<Rest, [...IndexArray, any], `${PrevString}${First}`>
+      : IndexArray['length']
+    : -1
+```
+
+그래서 간단한 방식으로 접근했다.
+
+문자열 제네릭을 하나더 추가해서 앞에서 체크한 애들도 저장을 해준후 뒤에 남은 문자열과 앞서 체크한 문자열이 쌓여있는 문자까지 템플릿 리터럴로 함쳐 체크했다.
+
+결과적으로 문자 하나씩 검사를 하면서 앞뒤 문자열을 템플릿 리터럴로 함친 문자열에 infer로 포함이 되어있는지 하나씩 체크하는 방식이 되었다.
+
