@@ -61,3 +61,9 @@ type ParseUrlParams<T> = T extends `${infer Start}/${infer Rest}`
   ? Param
   : never;
 ```
+
+> 코드 설명
+
+- `/` 단위로 나누고, 그다음에 `:` 가 붙어있는지 확인
+- `:` 가 붙어있으면, 그 문자를 유니온 타입으로 반환
+- `:` 가 붙어있지 않으면, `never` 반환
