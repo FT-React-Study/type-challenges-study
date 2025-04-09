@@ -322,3 +322,84 @@ type ParseUrlParams<
 `:`문자열인 경우 -> 플래그를 true로 전환해서 이후 문자열들이 temp에 저장될 수 있도록 재귀
 
 위 경우에 해당하지 않는 경우 -> 플래그는 false로 저장하며 temp는 무관, Result도 유지한다
+
+
+
+## Get Middle Element
+
+Get the middle element of the array by implementing a `GetMiddleElement` method, represented by an array
+
+> If the length of the array is odd, return the middle element If the length of the array is even, return the middle two elements
+
+For example
+
+```ts
+  type simple1 = GetMiddleElement<[1, 2, 3, 4, 5]>, // expected to be [3]
+  type simple2 = GetMiddleElement<[1, 2, 3, 4, 5, 6]> // expected to be [3, 4]
+```
+
+```ts
+type cases = [
+  Expect<Equal<GetMiddleElement<[]>, []>>,
+  Expect<Equal<GetMiddleElement<[1, 2, 3, 4, 5]>, [3]>>,
+  Expect<Equal<GetMiddleElement<[1, 2, 3, 4, 5, 6]>, [3, 4]>>,
+  Expect<Equal<GetMiddleElement<[() => string]>, [() => string]>>,
+  Expect<Equal<GetMiddleElement<[() => number, '3', [3, 4], 5]>, ['3', [3, 4]]>>,
+  Expect<Equal<GetMiddleElement<[() => string, () => number]>, [() => string, () => number]>>,
+  Expect<Equal<GetMiddleElement<[never]>, [never]>>,
+]
+```
+
+
+
+### 문제 분석
+
+배열 타입을 받아 중간에 있는 값을 반환한다.
+
+이 때 배열의 길이가 짝수일 경우 가운데 두개의 원소를 반환한다
+
+
+
+### 첫번째 접근
+
+```ts
+type GetMiddleElement<T> = 
+  T extends [infer _, ...infer Rest, infer _]
+    ? GetMiddleElement<Rest>
+    : T
+```
+
+첫값과 마지막값을 빼면서 재귀를 돌렸다
+
+이때 배열의 길이가 짝수인경우 그냥 둘다 빼버리고 공백으로 반환하는 케이스가 있었다
+
+
+
+### 두번째 접근 - 정답
+
+이 경우를 처리하기 위해 두가지 방법을 생각했는데 둘다 됐다
+
+```ts
+type GetMiddleElement<T> = 
+  T extends [infer Head, ...infer Rest, infer Tail]
+    ? Rest extends []
+      ? [Head, Tail]
+      : GetMiddleElement<Rest>
+    : T
+```
+
+Rest가 공백인 경우 앞뒤 애들을 다시 가져와서 반환하는 방법을 사용했다
+
+
+
+```ts
+type GetMiddleElement<T extends Array<any>> = 
+  T['length'] extends 2
+  ? T
+  : T extends [infer _, ...infer Rest, infer _]
+    ? GetMiddleElement<Rest>
+    : T
+```
+
+좀더 간단하게 T의 길이가 2인경우 재귀를 진행하지 않고 그냥 반환해버렸다
+
