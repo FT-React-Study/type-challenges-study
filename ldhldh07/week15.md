@@ -62,5 +62,184 @@ type FindEles<T extends any[], PrevT extends any[] = [], Result extends any[] = 
 
 
 
+## Count Element Number To Object
+
+With type `CountElementNumberToObject`, get the number of occurrences of every item from an array and return them in an object. For example:
+
+```ts
+type Simple1 = CountElementNumberToObject<[]> // return {}
+type Simple2 = CountElementNumberToObject<[1,2,3,4,5]> 
+// return {
+//   1: 1,
+//   2: 1,
+//   3: 1,
+//   4: 1,
+//   5: 1
+// }
+
+type Simple3 = CountElementNumberToObject<[1,2,3,4,5,[1,2,3]]> 
+// return {
+//   1: 2,
+//   2: 2,
+//   3: 2,
+//   4: 1,
+//   5: 1
+// }
+```
+
+```ts
+type cases = [
+  Expect<Equal<CountElementNumberToObject<[1, 2, 3, 4, 5]>, {
+    1: 1
+    2: 1
+    3: 1
+    4: 1
+    5: 1
+  } >>,
+  Expect<Equal<CountElementNumberToObject<[1, 2, 3, 4, 5, [1, 2, 3]]>, {
+    1: 2
+    2: 2
+    3: 2
+    4: 1
+    5: 1
+  }>>,
+  Expect<Equal<CountElementNumberToObject<[1, 2, 3, 4, 5, [1, 2, 3, [4, 4, 1, 2]]]>, {
+    1: 3
+    2: 3
+    3: 2
+    4: 3
+    5: 1
+  }>>,
+  Expect<Equal<CountElementNumberToObject<[never]>, {}>>,
+  Expect<Equal<CountElementNumberToObject<['1', '2', '0']>, {
+    0: 1
+    1: 1
+    2: 1
+  }>>,
+  Expect<Equal<CountElementNumberToObject<['a', 'b', ['c', ['d']]]>, {
+    'a': 1
+    'b': 1
+    'c': 1
+    'd': 1
+  }>>,
+]
+```
+
+### 문제 분석
+
+원소들을 몇개 들어있는지 갯수를 세서 value값으로 한 Map을 반환한다
 
 
+
+### 첫번째 접근
+
+```ts
+type CountElementNumberToObject<
+  T extends any[],
+  CountMap extends Record<PropertyKey, any[]> = {}
+> =
+  T extends [infer First, ...infer Rest]
+    ? First extends PropertyKey
+      ? CountElementNumberToObject<
+          Rest,
+          {
+            [P in keyof CountMap as P extends First ? never : P]: CountMap[P]  
+          } & {
+            [K in First]: K extends keyof CountMap ? [...CountMap[K], any] : [any]
+          }
+        >
+      : never
+    : {[K in keyof CountMap] : CountMap[K]['length']}
+```
+
+
+
+우선 nested 재귀는 배제하고 카운트를 하고자 했다.
+
+Record를 key값과 배열로 구성한 후 배열에 있는 값이 만약 지금 Record에 키값으로 존재한다면 그 값에 any를 더했다.
+
+그리고 마지막에 &로 연결된 map을 평탄화하면서 length로 값을 바꿔줬다.
+
+
+
+### 두번째 접근
+
+그냥 재귀만 해주면 될줄 알았는데
+
+마지막에 map을 정리하는 과정이 들어가서 재귀가 작동하지 않는 현상이 발생했다
+
+
+
+```ts
+type CountArrayMap<
+  T extends any[],
+  CountMap extends Record<PropertyKey, any[]> = {}
+> =
+  T extends [infer First, ...infer Rest]
+    ? First extends any[]
+      ? CountArrayMap<Rest, CountArrayMap<First, CountMap>>
+      : First extends PropertyKey
+        ? CountArrayMap<
+            Rest,
+            {
+              [P in keyof CountMap as P extends First ? never : P]: CountMap[P]  
+            } & {
+              [K in First]: K extends keyof CountMap ? [...CountMap[K], any] : [any]
+            }
+          >
+        : CountArrayMap<Rest, CountMap>
+    : CountMap;
+
+type CountElementNumberToObject<T extends any[], MappedT extends Record<PropertyKey, any[]> = CountArrayMap<T>> =    {
+  [K in keyof MappedT]: MappedT[K]['length'];
+};
+```
+
+
+
+그래서 마지막 배열의 길이를 체크하는 함수는 분리했다
+
+하지만
+
+```ts
+  Expect<Equal<CountElementNumberToObject<[never]>, {}>>,
+```
+
+이 케이스가 처리가 안됐다
+
+
+
+### 세번째 접근 - 정답
+
+```ts
+type CountArrayMap<
+  T extends any[],
+  CountMap extends Record<PropertyKey, any[]> = {}
+> =
+  T extends [infer First, ...infer Rest]
+    ? First extends never
+      ? CountArrayMap<Rest, CountMap>
+      : First extends any[]
+        ? CountArrayMap<Rest, CountArrayMap<First, CountMap>>
+        : First extends PropertyKey
+          ? CountArrayMap<
+              Rest,
+              {
+                [P in keyof CountMap as P extends First ? never : P]: CountMap[P];
+              } & {
+                [K in First]: K extends keyof CountMap ? [...CountMap[K], any] : [any];
+              }
+            >
+          : CountArrayMap<Rest, CountMap>
+    : CountMap;
+
+type CountElementNumberToObject<T extends any[], MappedT extends Record<PropertyKey, any[]> = CountArrayMap<T>> = 
+  T extends [never] 
+    ? {} 
+    : {
+      [K in keyof MappedT]: MappedT[K]['length'];
+    };
+
+```
+
+그냥 통째로 예외처리해버렸다
