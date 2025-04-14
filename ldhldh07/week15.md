@@ -304,3 +304,84 @@ type Integer<T extends number> =
 ```
 
 그래서 number를 T에 extends했을때 참이면 never를 아니면 T를 반환하도록 경우 처리를 해줬다.
+
+
+
+### To Primitive
+
+Convert a property of type literal (label type) to a primitive type.
+
+```ts
+type PersonInfo = {
+  name: 'Tom'
+  age: 30
+  married: false
+  addr: {
+    home: '123456'
+    phone: '13111111111'
+  }
+  hobbies: ['sing', 'dance']
+  readonlyArr: readonly ['test']
+  fn: () => any
+}
+
+type ExpectedResult = {
+  name: string
+  age: number
+  married: boolean
+  addr: {
+    home: string
+    phone: string
+  }
+  hobbies: [string, string]
+  readonlyArr: readonly [string]
+  fn: Function
+}
+
+type cases = [
+  Expect<Equal<ToPrimitive<PersonInfo>, ExpectedResult>>,
+]
+```
+
+
+
+### 문제 분석
+
+Primitive 값으로 객체 안의 value값들을 전부 바꿔줘야 한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type ArrayToPrimitive<T extends any[]> =
+  T extends [infer First, ...infer Rest]
+    ? [ToPrimitive<First>, ...ArrayToPrimitive<Rest>]
+    : [];
+
+type ToPrimitive<T> =
+  T extends string 
+    ? string 
+    : T extends number 
+      ? number 
+      : T extends boolean 
+        ? boolean 
+        : T extends Function 
+          ? Function 
+          : T extends any[]
+            ? ArrayToPrimitive<T>
+            : T extends object
+              ? { [K in keyof T]: ToPrimitive<T[K]> }
+              : T;
+```
+
+primitive 타입이 `string, number boolean`이 있다.
+
+그리고 추가적으로 funtion이 있어 그 경우를 각각 처리해줬다.
+
+
+
+그리고 배열의 경우 재귀를 처리해야해서 별도의 유틸리티 타입을 만들어서 처리했다.
+
+그리고 nested된 객체도 처리할 수 있고, 이 유틸리티 타입이 기본적으로 객체의 value값을 처리할 수 있도록 객체인 경우 value값에 재귀를 해줬다.
+
