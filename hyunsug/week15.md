@@ -135,9 +135,27 @@ type ToPrimitive<T> = T extends (...args: any[]) => any
 ```
 
 - 그냥 `Function`부터 하나씩 거쳐가면서 마지막에 배열과 객체 타입을 순회하도록 했다
-- 배열의 경우 `readonly`가 붙은 경우를 함께 처리하려면 `readonly any[]` 혹은 `readonly unknown[]` 타입을 extends 하는지 확인해야 하기에 그렇게 진행했다
+- 배열의 경우 `readonly`가 붙은 경우를 함께 처리하려면
+- `readonly any[]` 혹은 `readonly unknown[]` 타입을 extends 하는지 확인해야 하기에 그렇게 진행했다
 
 ## [Medium-17973-DeepMutable](./medium/17973-deep-mutable.ts)
+
+```ts
+type DeepMutable<T extends { [key: keyof any]: any }> = {
+  -readonly [key in keyof T]: T[key] extends (...args: any[]) => any
+    ? T[key]
+    : T[key] extends readonly unknown[]
+    ? DeepMutable<T[key]>
+    : T[key] extends { [key: keyof any]: any }
+    ? DeepMutable<T[key]>
+    : T[key];
+};
+```
+
+- 문제에 따라, T는 객체 타입으로 한정되어야 했기에 `{ [key: keyof any]: any }`를 extends하는 형태로 제한했다
+- 이후 `MappedType`을 이용하여 `-readonly`를 붙여주고 함수, 배열, 객체 타입에 대해 순회하도록 했다.
+- 함수 타입 또한 객체 타입이기에 객체에 앞선 검증으로 제외를 해주었다
+- 나머지 원시 타입들은 key에서 `-readonly`를 붙이는 형태로 읽기전용을 제거하도록 했다.
 
 ## [Medium-18142-All](./medium/18142-all.ts)
 
