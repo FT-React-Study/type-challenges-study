@@ -243,3 +243,64 @@ type CountElementNumberToObject<T extends any[], MappedT extends Record<Property
 ```
 
 그냥 통째로 예외처리해버렸다
+
+## Integer
+
+Please complete type `Integer<T>`, type `T` inherits from `number`, if `T` is an integer return it, otherwise return `never`.
+
+```ts
+let x = 1
+let y = 1 as const
+
+type cases1 = [
+  Expect<Equal<Integer<1>, 1>>,
+  Expect<Equal<Integer<1.1>, never>>,
+  Expect<Equal<Integer<1.0>, 1>>,
+  Expect<Equal<Integer<1.000000000>, 1>>,
+  Expect<Equal<Integer<0.5>, never>>,
+  Expect<Equal<Integer<28.00>, 28>>,
+  Expect<Equal<Integer<28.101>, never>>,
+  Expect<Equal<Integer<typeof x>, never>>,
+  Expect<Equal<Integer<typeof y>, 1>>,
+]
+```
+
+
+
+### 문제 분석
+
+정수인 경우 정수를 반환하고 소수점이 있는 경우나 원시타입 - number 타입인 경우 never를 반환한다.
+
+
+
+### 첫번째 접근
+
+```ts
+type Integer<T extends number> =
+ `${T}` extends `${infer _}.${infer _}`
+  ? never
+  : T
+```
+
+템플릿 리터럴로 문자로 만들었을때 .이 생기면 never를 반환한다.
+
+
+
+템플릿 리터럴로 변환하는 과정에서 1.0같은 형태의 숫자 타입도 .이 사라지고 `1`로 바뀌고 T를 반환시키면 유틸리티 타입에서 원하는 동작이 이루어진다
+
+
+
+대신 이 코드의 경우 `Integer<typeof x>`의 케이스처럼 number타입이 들어가는 경우 never가 아니라 그냥 number를 반환해버린다
+
+### 두번째 접근 - 정답
+
+```ts
+type Integer<T extends number> =
+ `${T}` extends `${infer _}.${infer _}`
+  ? never
+  : number extends T
+    ? never
+    : T
+```
+
+그래서 number를 T에 extends했을때 참이면 never를 아니면 T를 반환하도록 경우 처리를 해줬다.
