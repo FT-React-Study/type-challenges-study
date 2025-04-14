@@ -118,6 +118,25 @@ type Integer<T extends string | number> = Same<T, number> extends true
 
 ## [Medium-16259-ToPrimitive](./medium/16259-to-primitive.ts)
 
+```ts
+type ToPrimitive<T> = T extends (...args: any[]) => any
+  ? Function
+  : T extends string
+  ? string
+  : T extends number
+  ? number
+  : T extends boolean
+  ? boolean
+  : T extends readonly any[]
+  ? { [K in keyof T]: ToPrimitive<T[K]> }
+  : T extends object
+  ? { [K in keyof T]: ToPrimitive<T[K]> }
+  : T;
+```
+
+- 그냥 `Function`부터 하나씩 거쳐가면서 마지막에 배열과 객체 타입을 순회하도록 했다
+- 배열의 경우 `readonly`가 붙은 경우를 함께 처리하려면 `readonly any[]` 혹은 `readonly unknown[]` 타입을 extends 하는지 확인해야 하기에 그렇게 진행했다
+
 ## [Medium-17973-DeepMutable](./medium/17973-deep-mutable.ts)
 
 ## [Medium-18142-All](./medium/18142-all.ts)
