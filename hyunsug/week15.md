@@ -42,6 +42,47 @@ type FindEles<
 
 ## [Medium-9989-Count Element Number To Object](./medium/9989-count-element-number-to-object.ts)
 
+```ts
+type DeepFlat<T extends any[]> = T extends [infer F, ...infer Rest]
+  ? F extends any[]
+    ? [...DeepFlat<F>, ...DeepFlat<Rest>]
+    : [F, ...DeepFlat<Rest>]
+  : [];
+
+type GetObjectWithLength<T extends { [key: keyof any]: readonly unknown[] }> = {
+  [key in keyof T]: T[key] extends readonly unknown[]
+    ? T[key]["length"]
+    : never;
+};
+
+type CountElementNumberToObject<
+  T extends any[],
+  FT extends any[] = DeepFlat<T>,
+  Base extends { [key: keyof any]: unknown[] } = { [key in FT[number]]: [] }
+> = T extends [never]
+  ? {}
+  : FT extends [infer F, ...infer Rest]
+  ? F extends keyof Base
+    ? CountElementNumberToObject<
+        [],
+        Rest,
+        {
+          [key in keyof Base]: key extends F
+            ? [...Base[key], unknown]
+            : Base[key];
+        }
+      >
+    : CountElementNumberToObject<[], Rest, Base>
+  : GetObjectWithLength<Base>;
+```
+
+- 예제들을 보고 우선 `[T] extends [never]`로 never 단일 검증을 처리하려 했으나, T가 `[never]`이기에 이 방식으로는
+  `[[never]] extends [never]` 형태로 타입 비교가 되어 오류가 있었다.
+- 배열이 중첩되는 형태가 예제에 존재했기 때문에 이터레이션의 편의를 위해 `DeepFlat` 타입을 이용하여 배열을 펼쳤다.
+- 기본 흐름은 `FT`에 펼쳐진 배열을 담고 `T`는 더이상 사용하지 않으며, `Base`에는 펼쳐진 요소들을 key로 가지며 나온 횟수를
+  `unknown`이 반복되는 배열로 그 횟수를 담도록 했다.
+- 마지막에 헬퍼 타입을 하나 추가하여, 각 key에 대한 배열의 길이를 이용하여 원하는 객체 타입을 반환하도록 했다.
+
 ## [Medium-10969-Integer](./medium/10969-integer.ts)
 
 ## [Medium-16259-ToPrimitive](./medium/16259-to-primitive.ts)
@@ -49,3 +90,7 @@ type FindEles<
 ## [Medium-17973-DeepMutable](./medium/17973-deep-mutable.ts)
 
 ## [Medium-18142-All](./medium/18142-all.ts)
+
+```
+
+```
