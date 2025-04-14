@@ -159,6 +159,22 @@ type DeepMutable<T extends { [key: keyof any]: any }> = {
 
 ## [Medium-18142-All](./medium/18142-all.ts)
 
+```ts
+type Same<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y
+  ? 1
+  : 2
+  ? 1
+  : 2;
+
+type All<T extends readonly unknown[], K> = T extends [infer F, ...infer R]
+  ? Same<F, K> extends true
+    ? All<R, K>
+    : false
+  : true;
 ```
 
-```
+- 처음에는 `Same<T[number], K>`를 사용하여 대부분을 통과했다.
+- 다른 사람들의 제출된 내용을 봐도 이 정도로 해결될 문제인 듯 했으나, 마지막 예제가 `[1, 1, 2]`, `1 | 2`로 되어있었다.
+- 해당 케이스가 추가되기 이전의 답안은 위와 같은 형식이었고, 그 이후의 답안은 전체순회를 택한 형식으로 보였다.
+- 이 경우 `T[number]`가 `1 | 2`가 되며, `Same<1 | 2, 1 | 2>`가 되어 케이스 조건인 `false`가 되지 않는다.
+- 따라서, 배열의 모든 원소를 순회하여 검사하도록 하는 것으로 방식을 바꾸어 해결했다.
