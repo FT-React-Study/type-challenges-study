@@ -85,6 +85,37 @@ type CountElementNumberToObject<
 
 ## [Medium-10969-Integer](./medium/10969-integer.ts)
 
+```ts
+type Same<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y
+  ? 1
+  : 2
+  ? 1
+  : 2;
+
+type StringToUnion<T extends string> = T extends `${infer First}${infer Rest}`
+  ? First | StringToUnion<Rest>
+  : never;
+
+type IsOnlyZero<T extends string> = StringToUnion<T> extends "0" ? true : false;
+
+type Integer<T extends string | number> = Same<T, number> extends true
+  ? never
+  : `${T}` extends `${infer IntegerPart}.${infer DecimalPart}`
+  ? IsOnlyZero<DecimalPart> extends true
+    ? IntegerPart
+    : never
+  : T;
+```
+
+- 예제들을 확인하고 고려해야겠다고 생각한 점은 다음 두가지다
+- `number` 타입으로 나타나는 일반 숫자(숫자 리터럴 타입이 아닌)인 경우를 제거하는 케이스,
+- 소수점을 가지되 정수인지 실수인지를 판별하는 케이스
+- 따라서 지속적으로 엄밀한 타입 비교를 위해 이용하는 `Same` 타입을 이용하여 `number` 타입으로 나타나는 경우를 제거했다
+- 그리고 문자열로 변환한 T를 템플릿 리터럴 패턴 매칭을 이용하여 정수부, 소수부로 나누고 소수부가 0으로만 이루어졌는지를 판별하도록 했다
+- 이를 위해 `StringToUnion` 타입을 이용하여, 0만으로 이루어졌다면 0 하나의 유니언이 될 테니 이를 이용했다
+- 따라서, 소수부가 0으로만 이루어진 경우 정수부를 반환하고
+- `number`타입이 아닌 숫자 리터럴 타입이고, 패턴매칭에 잡히지 않는 소수부가 없는 경우 그대로 반환하도록 했다
+
 ## [Medium-16259-ToPrimitive](./medium/16259-to-primitive.ts)
 
 ## [Medium-17973-DeepMutable](./medium/17973-deep-mutable.ts)
