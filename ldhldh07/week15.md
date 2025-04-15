@@ -385,3 +385,185 @@ primitive 타입이 `string, number boolean`이 있다.
 
 그리고 nested된 객체도 처리할 수 있고, 이 유틸리티 타입이 기본적으로 객체의 value값을 처리할 수 있도록 객체인 경우 value값에 재귀를 해줬다.
 
+## Deep Mutable
+
+Implement a generic DeepMutable which make every parameter of an object - and its sub-objects recursively - mutable.
+
+For example
+
+```ts
+type X = {
+  readonly a: () => 1
+  readonly b: string
+  readonly c: {
+    readonly d: boolean
+    readonly e: {
+      readonly g: {
+        readonly h: {
+          readonly i: true
+          readonly j: "s"
+        }
+        readonly k: "hello"
+      }
+    }
+  }
+}
+
+type Expected = {
+  a: () => 1
+  b: string
+  c: {
+    d: boolean
+    e: {
+      g: {
+        h: {
+          i: true
+          j: "s"
+        }
+        k: "hello"
+      }
+    }
+  }
+}
+
+type Todo = DeepMutable<X> // should be same as `Expected`
+```
+
+
+
+You can assume that we are only dealing with Objects in this challenge. Arrays, Functions, Classes and so on do not need to be taken into consideration. However, you can still challenge yourself by covering as many different cases as possible.
+
+```ts
+interface Test1 {
+  readonly title: string
+  readonly description: string
+  readonly completed: boolean
+  readonly meta: {
+    readonly author: string
+  }
+}
+type Test2 = {
+  readonly a: () => 1
+  readonly b: string
+  readonly c: {
+    readonly d: boolean
+    readonly e: {
+      readonly g: {
+        readonly h: {
+          readonly i: true
+          readonly j: 's'
+        }
+        readonly k: 'hello'
+      }
+      readonly l: readonly [
+        'hi',
+        {
+          readonly m: readonly ['hey']
+        },
+      ]
+    }
+  }
+}
+interface DeepMutableTest1 {
+  title: string
+  description: string
+  completed: boolean
+  meta: {
+    author: string
+  }
+}
+
+type DeepMutableTest2 = {
+  a: () => 1
+  b: string
+  c: {
+    d: boolean
+    e: {
+      g: {
+        h: {
+          i: true
+          j: 's'
+        }
+        k: 'hello'
+      }
+      l: [
+        'hi',
+        {
+          m: ['hey']
+        },
+      ]
+    }
+  }
+}
+
+type cases = [
+  Expect<Equal<DeepMutable<Test1>, DeepMutableTest1>>,
+  Expect<Equal<DeepMutable<Test2>, DeepMutableTest2>>,
+]
+
+type errors = [
+  // @ts-expect-error
+  DeepMutable<'string'>,
+  // @ts-expect-error
+  DeepMutable<0>,
+]
+```
+
+
+
+### 문제 분석
+
+객체 타입의 readonly 속성을 떼어낸다. nested된 애들까지 다 떼어낸다
+
+
+
+### 첫번째 접근
+
+```ts
+type DeepMutable<T extends object> = {
+  -readonly [P in keyof T]: 
+    T[P] extends object
+      ? DeepMutable<T[P]>
+      : T[P]
+}
+```
+
+단순하게 객체내부 value 값에 재귀를 해주고 `-readonly`를 해줬다
+
+
+
+두번째 케이스 중에 `() => 1`이 object에 extends 되어 케이스가 제대로 된 값을 반환하지 않았다.
+
+
+
+#### 일급 객체
+
+자바스크립트에서 함수는 일급 객체로 취급된다
+
+그렇기 때문에 
+
+```ts
+type example = (() => 1) extends object ? true : false // true
+```
+
+함수는 object에 extends 된다
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type DeepMutable<T extends object> = {
+  - readonly [P in keyof T]: 
+    T[P] extends object
+      ? T[P] extends Function
+        ? T[P]
+        : DeepMutable<T[P]>
+      : T[P];
+};
+```
+
+funtion은 한번더 경우 처리를 해준다.
+
+
+
