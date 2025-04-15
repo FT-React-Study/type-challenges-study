@@ -54,7 +54,17 @@
 
 /* _____________ Your Code Here _____________ */
 
-type DeepMutable = any
+type ObjectType = Record<any,any>
+
+type DeepMutable<T> = T extends ObjectType
+  ? {
+      -readonly [P in keyof T] : T[P] extends Function
+        ? T[P]
+        : T[P] extends ObjectType
+          ? { [ PP in keyof DeepMutable<T[P]>] : DeepMutable<T[P]>[PP]}
+          : T[P]
+    }
+  : never
 
 /* _____________ Test Cases _____________ */
 import type { Equal, Expect } from '@type-challenges/utils'
