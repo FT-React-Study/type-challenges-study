@@ -55,7 +55,7 @@
 /* _____________ Your Code Here _____________ */
 
 // 객체 키 순환하면서 다 바꿔주고, 오브젝트일때는 재귀로 처리해버리자
-type isNotPureObject<T extends object> = T extends [...infer R]
+type isNotPureObject<T extends object> = T extends [...infer _]
   ? true
   : T extends () => {}
   ? true
