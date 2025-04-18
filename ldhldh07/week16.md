@@ -88,7 +88,7 @@ type FindAll<T extends string, P extends string, Prev extends string= ''> =
 
 
 
-### 두번째 접근
+### 두번째 접근 - 정답
 
 ```ts
 type StringToArray<S extends string> =
@@ -109,3 +109,59 @@ type FindAll<T extends string, P extends string, Prev extends string= ''> =
 그래서 P를 찾아낸 후에 P를 첫글자와 나머지 글자로 나눈 후
 
 재귀할때는 그 첫번째 문자를 기준으로 그 뒤에서부터 재귀하도록 설정했다.
+
+
+
+## Combination Key Type
+
+1. Combine multiple modifier keys, but the same modifier key combination cannot appear.
+2. In the `ModifierKeys` provided, the priority of the previous value is higher than the latter value; that is, `cmd ctrl` is OK, but `ctrl cmd` is not allowed.
+
+```ts
+type ModifierKeys = ['cmd', 'ctrl', 'opt', 'fn']
+type CaseTypeOne = 'cmd ctrl' | 'cmd opt' | 'cmd fn' | 'ctrl opt' | 'ctrl fn' | 'opt fn'
+
+type cases = [
+  Expect<Equal<Combs<ModifierKeys>, CaseTypeOne>>,
+]
+```
+
+
+
+### 문제 분석
+
+문자열 배열중에 두개씩 짝을 묶은 조합들의 모든 경우의 수를 반환한다.
+
+이때 원소의 순서를 조합 또한 따라야 한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type Combs<T extends any[]> = 
+  T extends [infer First extends string, ...infer Rest]
+    ? (Rest[number] extends infer S extends string ? `${First} ${S}` : never) | Combs<Rest>
+    : never
+```
+
+배열을 첫 원소와 나머지로 쪼갠 후
+
+나머지를 유니언으로 바꾼다. 유니언의 분배법칙을 이용해서 First랑 유니온의 각값들의 조합들을 합친 문자열을 또 유니언으로 반환받을 수 있었다.
+
+그리고 Rest로 재귀하면 모든 경우의 수를 이룰 수 있다.
+
+
+
+원소를 하나씩 빼서 앞에 위치하도록 하기 때문에 순서에 대한 요구사항과도 맞아떨어진다.
+
+
+
+#### 분배법칙과 infer
+
+```ts
+Rest[number] extends infer S extends string
+```
+
+유니언 타입 분배법칙 사용할 때 infer를 이용해서 타입 변수를 만들고 이를 string으로 해서 이후 템플릿 리터럴에 에러가 뜨지 않도록 할 수 있었다.
+
