@@ -308,3 +308,55 @@ type ReplaceFirst<T extends readonly unknown[], S, R> =
 
 그리고 맞는 경우에 그냥 First만 R로 바꾸고 나머지는 재귀를 돌리는 것이 아니라 Rest를 그대로 스프레드해서 반환했다.
 
+
+
+## Transpose
+
+The transpose of a matrix is an operator which flips a matrix over its diagonal; that is, it switches the row and column indices of the matrix A by producing another matrix, often denoted by AT.
+
+```ts
+type Matrix = Transpose <[[1]]>; // expected to be [[1]]
+type Matrix1 = Transpose <[[1, 2], [3, 4]]>; // expected to be [[1, 3], [2, 4]]
+type Matrix2 = Transpose <[[1, 2, 3], [4, 5, 6]]>; // expected to be [[1, 4], [2, 5], [3, 6]]
+```
+
+```ts
+type cases = [
+  Expect<Equal<Transpose<[]>, []>>,
+  Expect<Equal<Transpose<[[1]]>, [[1]]>>,
+  Expect<Equal<Transpose<[[1, 2]]>, [[1], [2]]>>,
+  Expect<Equal<Transpose<[[1, 2], [3, 4]]>, [[1, 3], [2, 4]]>>,
+  Expect<Equal<Transpose<[[1, 2, 3], [4, 5, 6]]>, [[1, 4], [2, 5], [3, 6]]>>,
+  Expect<Equal<Transpose<[[1, 4], [2, 5], [3, 6]]>, [[1, 2, 3], [4, 5, 6]]>>,
+  Expect<Equal<Transpose<[[1, 2, 3], [4, 5, 6], [7, 8, 9]]>, [[1, 4, 7], [2, 5, 8], [3, 6, 9]]>>,
+]
+```
+
+
+
+### 문제 분석
+
+2차 배열 형식의 배열 타입을 받아서 행과열을 뒤집어서 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type Transpose<
+  M extends unknown[][],
+  RowIndexArray extends any[] = [],
+  ColumIndexArray extends any[] = [],
+  TempRow extends any[] = [],
+  Result extends unknown[][] = [],
+> = 
+  RowIndexArray['length'] extends M[0]['length']
+    ? Result
+    : ColumIndexArray['length'] extends M['length']
+      ? Transpose<M, [...RowIndexArray, any], [], [], [...Result, TempRow]>
+      : Transpose<M, RowIndexArray, [...ColumIndexArray, any], [...TempRow, M[ColumIndexArray['length']][RowIndexArray['length']]], Result>
+```
+
+
+
+인덱스 탐색을 이용해서 행과 열을 하나씩 더하면서 해당 행렬에 대해서 뒤집어진 인덱스로 M을 탐색해서 결과에 추가했다.
