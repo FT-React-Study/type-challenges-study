@@ -242,3 +242,69 @@ type PermutationsOfTuple<
 
 
 
+## Replace First
+
+```ts
+type ReplaceFirst<T extends readonly unknown[], S, R> = 
+  T extends [infer First, ...infer Rest]
+    ? First extends S
+      ? [R, ...Rest]
+      : [First, ...ReplaceFirst<Rest, S, R>]
+    : T
+```
+
+```ts
+type cases = [
+  Expect<Equal<ReplaceFirst<[1, 2, 3], 3, 4>, [1, 2, 4]>>,
+  Expect<Equal<ReplaceFirst<['A', 'B', 'C'], 'C', 'D'>, ['A', 'B', 'D']>>,
+  Expect<Equal<ReplaceFirst<[true, true, true], true, false>, [false, true, true]>>,
+  Expect<Equal<ReplaceFirst<[string, boolean, number], boolean, string>, [string, string, number]>>,
+  Expect<Equal<ReplaceFirst<[1, 'two', 3], string, 2>, [1, 2, 3]>>,
+  Expect<Equal<ReplaceFirst<['six', 'eight', 'ten'], 'eleven', 'twelve'>, ['six', 'eight', 'ten']>>,
+]
+```
+
+
+
+### 문제 분석
+
+배열을 받아 두번째 제네릭으로 들어가는 인자와 원소와 같은 경우 세번째 제네릭으로 들어가는 인자로 바꿔서 반환한다.
+
+이때 같은 모든 원소를 바꾸는 것이 아니라 같은 원소중 첫번째 것만 바꿔준다.
+
+
+
+### 첫번째 접근
+
+```ts
+type ReplaceFirst<T extends readonly unknown[], S, R> = 
+  T extends [infer First, ...infer Rest]
+    ? (<T>() => T extends First ? 1 : 2) extends
+      (<T>() => T extends S ? 1: 2)
+      ? [R, ...ReplaceFirst<Rest, S, R>]
+      : [First, ...ReplaceFirst<Rest, S, R>]
+    : T
+```
+
+두가지 요구사항을 고려하지 않았다
+
+- 첫번째 원소만 바꿔준다는 점
+- 완전히 같은 타입이 아닌 extends 되는 것이 기준이라는 점
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type ReplaceFirst<T extends readonly unknown[], S, R> = 
+  T extends [infer First, ...infer Rest]
+    ? First extends S
+      ? [R, ...Rest]
+      : [First, ...ReplaceFirst<Rest, S, R>]
+    : T
+```
+
+그래서 먼저 First를 S에 그냥 extends 했다.
+
+그리고 맞는 경우에 그냥 First만 R로 바꾸고 나머지는 재귀를 돌리는 것이 아니라 Rest를 그대로 스프레드해서 반환했다.
+
