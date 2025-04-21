@@ -165,3 +165,80 @@ Rest[number] extends infer S extends string
 
 유니언 타입 분배법칙 사용할 때 infer를 이용해서 타입 변수를 만들고 이를 string으로 해서 이후 템플릿 리터럴에 에러가 뜨지 않도록 할 수 있었다.
 
+
+
+## Permutation of Tuple
+
+Given a generic tuple type `T extends unknown[]`, write a type which produces all permutations of `T` as a union.
+
+For example:
+
+```ts
+PermutationsOfTuple<[1, number, unknown]>
+// Should return:
+// | [1, number, unknown]
+// | [1, unknown, number]
+// | [number, 1, unknown]
+// | [unknown, 1, number]
+// | [number, unknown, 1]
+// | [unknown, number ,1]
+```
+
+```ts
+type cases = [
+  Expect<Equal<PermutationsOfTuple<[]>, []>>,
+  Expect<Equal<PermutationsOfTuple<[any]>, [any]>>,
+  Expect<Equal<PermutationsOfTuple<[any, unknown]>, [any, unknown] | [unknown, any]>>,
+  Expect<Equal<
+    PermutationsOfTuple<[any, unknown, never]>,
+    | [any, unknown, never]
+    | [unknown, any, never]
+    | [unknown, never, any]
+    | [any, never, unknown]
+    | [never, any, unknown]
+    | [never, unknown, any]
+  >>,
+  Expect<Equal<
+    PermutationsOfTuple<[1, number, unknown]>,
+    | [1, number, unknown]
+    | [1, unknown, number]
+    | [number, 1, unknown]
+    | [unknown, 1, number]
+    | [number, unknown, 1]
+    | [unknown, number, 1]
+  >>,
+  ExpectFalse<Equal<PermutationsOfTuple<[ 1, number, unknown ]>, [unknown]>>,
+]
+```
+
+
+
+### 문제 분석
+
+배열을 받아서 해당 원소들로 구성된 모든 순열의 경우를 다시 배열로 반환한다.
+
+
+
+### 정답
+
+```ts
+type PermutationsOfTuple<
+  T extends unknown[], 
+  Prev extends unknown[] = []
+> = 
+  T extends [infer First, ...infer Rest] 
+    ? [First, ...PermutationsOfTuple<[...Prev, ...Rest]>] 
+      | (Rest extends []
+          ? never 
+          : PermutationsOfTuple<Rest, [...Prev, First]>) 
+    : T
+```
+
+원소들을 하나씩 순회하고 그 원소, 그리고 나머지를 다시 순열로 재귀로 돌려서 풀고자 하는 방향성을 잡았다.
+
+그리고 그 나머지는 prev를 통해 이전에 검사한 원소들가
+
+하지만 실제 구현은 잘 못하겠어서 답에서 같은 로직을 사용한 답을 찾아서 참고했다.
+
+
+
