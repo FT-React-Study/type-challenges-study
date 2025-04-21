@@ -46,6 +46,19 @@ type FindAll<
 
 ## [Medium-21106-CombinationKeyType](./medium/21106-combination-key-type.ts)
 
+```ts
+type Combs<T extends string[]> = T extends [
+  infer F extends string,
+  ...infer R extends string[]
+]
+  ? `${F} ${R[number]}` | Combs<R>
+  : never;
+```
+
+- 배열 T의 원소들을 조합하여 반환하되, 앞선 원소들은 뒤의 원소들의 뒤로 배치되어서는 안됨
+- 따라서, `${F} ${R[number]}`를 이용하여 먼저 앞선 문자를 기준으로 조합을 구성하고 남은 문자들을 기준으로 `Combs<R>`을 수행하면
+- `F (분배된)R[number]`와 `남은 원소의 첫번째 - 남은 원소의 두번째부터 나머지`... 의 유니언이 반환됨
+
 ## [Medium-21220-PermutationsOfTuple](./medium/21220-permutations-of-tuple.ts)
 
 ## [Medium-25170-ReplaceFirst](./medium/25170-replace-first.ts)
