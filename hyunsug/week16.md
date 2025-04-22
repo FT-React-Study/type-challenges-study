@@ -104,3 +104,16 @@ type ReplaceFirst<
 - 모든 순회가 끝났는데 교체가 없다면 Pre(전체 복사본)을 반환하게 되고, 그 이전에 교체가 일어났다면 그 이전까지의 Pre + 교체된 값 + 나머지 형태가 된다
 
 ## [Medium-25270-Transpose](./medium/25270-transpose.ts)
+
+```ts
+type Transpose<M extends number[][], X = M["length"] extends 0 ? [] : M[0]> = {
+  [K in keyof X]: {
+    [Y in keyof M]: K extends keyof M[Y] ? M[Y][K] : never;
+  };
+};
+```
+
+- X는 columns 갯수를 기준으로 0이라면 빈 배열, 아니라면 first row
+- first row의 각 인덱스 번호는 곧 변환된 행렬의 각 row 번호가 됨
+- 이를 통해 순회를 진행하며 각 원소를 추출하고 이를 통해 행렬을 변환함
+- `K extends keyof M[Y]`는 행/열 번호 교차 시 각 원소가 존재하는지 확인하는 역할을 함
