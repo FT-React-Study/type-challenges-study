@@ -86,4 +86,21 @@ type PermutationsOfTuple<
 
 ## [Medium-25170-ReplaceFirst](./medium/25170-replace-first.ts)
 
+```ts
+type ReplaceFirst<
+  T extends readonly unknown[],
+  S,
+  R,
+  Pre extends unknown[] = []
+> = T extends [infer F, ...infer Rest]
+  ? F extends S
+    ? [...Pre, R, ...Rest]
+    : ReplaceFirst<Rest, S, R, [...Pre, F]>
+  : Pre;
+```
+
+- T를 순회하며 Pre에는 순회하면서 S가 아니었던 것들을 담아나간다
+- `F extends S`를 만족하면 Pre 다음에 R을 추가하고, 아니라면 현재 원소를 Pre에 담는다
+- 모든 순회가 끝났는데 교체가 없다면 Pre(전체 복사본)을 반환하게 되고, 그 이전에 교체가 일어났다면 그 이전까지의 Pre + 교체된 값 + 나머지 형태가 된다
+
 ## [Medium-25270-Transpose](./medium/25270-transpose.ts)
