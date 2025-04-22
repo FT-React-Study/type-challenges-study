@@ -61,6 +61,29 @@ type Combs<T extends string[]> = T extends [
 
 ## [Medium-21220-PermutationsOfTuple](./medium/21220-permutations-of-tuple.ts)
 
+```ts
+type Insertion<T extends unknown[], U> = T extends [infer F, ...infer R]
+  ? [F, U, ...R] | [F, ...Insertion<R, U>]
+  : [U];
+
+type PermutationsOfTuple<
+  T extends unknown[],
+  Result extends unknown[] = []
+> = T extends [infer F, ...infer R]
+  ? PermutationsOfTuple<R, [F, ...Result] | Insertion<Result, F>>
+  : Result;
+```
+
+- 튜플 T의 모든 원소를 이용하여 가능한 모든 수열을 생성하고 유니언으로 반환한다
+- 첫번째 원소부터 순회하며 `Result` 타입에 순열을 만들어 담는다.
+- 헬퍼 타입 `Insertion`은 이용할 때, 나머지 원소들을 순회하며 현재 순서의 원소를 모든 위치에 넣는 역할을 한다.
+- `[1, 2, 3]`을 기준으로 생각했을 때
+
+1. `PermutationsOfTuple<[2, 3], [1] | Insertion<[], 1>>` => `PermutationsOfTuple<[2, 3], [1] | [1]>`
+2. `PermutationsOfTuple<[3], [2, 1] | Insertion<[1], 2>>` => `PermutationsOfTuple<[3], [2, 1] | [2, 1]>`
+3. `[2, 1] | [1, 2]` 유니언에 대해 분배가 일어나 Insertion에서는 `[2, 1, 3] | [2, 3, 1]`과 `[1, 3, 2] | [1, 2, 3]`이,
+   `[F, ...Result]`를 통해 `[3, 1, 2] | [3, 2, 1]`이 생성된다.
+
 ## [Medium-25170-ReplaceFirst](./medium/25170-replace-first.ts)
 
 ## [Medium-25270-Transpose](./medium/25270-transpose.ts)
