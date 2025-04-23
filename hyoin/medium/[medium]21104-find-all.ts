@@ -12,7 +12,20 @@
 
 /* _____________ Your Code Here _____________ */
 
-type FindAll<T extends string, P extends string> = any
+type StartsWith<T extends string, P extends string> = T extends `${P}${infer _}`
+  ? true
+  : false
+
+type FindAll<T extends string, 
+P extends string, 
+Tmp extends string[] = [], 
+Res extends number[] = []> = P extends ''
+  ? Res 
+  : T extends `${infer TF}${infer TR}`
+    ? StartsWith<T, P> extends true
+        ? FindAll<TR, P, [...Tmp, TF], [...Res, Tmp['length']]>
+        : FindAll<TR, P, [...Tmp, TF], Res>
+    : Res
 
 /* _____________ Test Cases _____________ */
 import type { Equal, Expect } from '@type-challenges/utils'
