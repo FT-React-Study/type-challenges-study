@@ -117,3 +117,19 @@ type Transpose<M extends number[][], X = M["length"] extends 0 ? [] : M[0]> = {
 - first row의 각 인덱스 번호는 곧 변환된 행렬의 각 row 번호가 됨
 - 이를 통해 순회를 진행하며 각 원소를 추출하고 이를 통해 행렬을 변환함
 - `K extends keyof M[Y]`는 행/열 번호 교차 시 각 원소가 존재하는지 확인하는 역할을 함
+
+- 이 타입의 특징은, 순회에 사용한 `keyof X`, `keyof M`이 배열의 인덱스 값이라는 점이다
+- 최종 반환된 `MappedType` 역시 배열 인덱스 값을 key 로 가지는 객체가 된다
+- TypeScript는 key가 연속된 숫자 인덱스라면 이를 배열/튜플로 인식한다고 한다
+
+```ts
+type Test2 = {
+  0: 'a',
+  1: 'b'
+  2: 'c'
+}
+
+type tt = ['a','b','c'] extends Test2 ? true : false; // true
+```
+
+- 다만 `Equal<A, B>`로는 직접 부여한 구조가 다르기 때문에 이를 통해서는 2가 나온다.
