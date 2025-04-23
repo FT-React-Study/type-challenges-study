@@ -10,7 +10,7 @@ Implement the type `Filter<T, Predicate>` takes an Array `T`, primitive type or 
 
 - 배열을 받아, 배열의 요소중 Predicate(`Primitive Type` or `Union Primitive Type`)에 해당하는 요소만 반환
 
-#### 시도 1
+#### 시도 1 (정답)
 
 > 접근 방식
 
