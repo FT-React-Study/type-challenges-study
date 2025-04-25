@@ -310,3 +310,81 @@ properties의 속성값이 req+숫자 형태일때는 nullable하지 않게 만�
 이때 단순히 최상위 단계에서만 required 속성으로 바꾸는게 아니라 그 아래 레벨에서도 바꿔야 했다.
 
 그래서 flag제네릭 하나 추가해서 그 경우 true를 넣어서 재귀하였다.
+
+
+
+## Square
+
+```ts
+type cases = [
+  Expect<Equal<Square<0>, 0>>,
+  Expect<Equal<Square<1>, 1>>,
+  Expect<Equal<Square<3>, 9>>,
+  Expect<Equal<Square<20>, 400>>,
+  Expect<Equal<Square<100>, 10000>>,
+  Expect<Equal<Square<101>, 10201>>,
+
+  // Negative numbers
+  Expect<Equal<Square<-2>, 4>>,
+  Expect<Equal<Square<-5>, 25>>,
+  Expect<Equal<Square<-31>, 961>>,
+  Expect<Equal<Square<-50>, 2500>>,
+]
+```
+
+
+
+### 첫번째 접근
+
+```ts
+type Flatten<T extends any[][]> = 
+  T extends  [infer First extends any[], ...infer Rest extends any[][]]
+    ? [...First, ...Flatten<Rest>]
+    : []
+
+type Square<
+  N extends number, 
+  Abs extends number = `${N}` extends `-${infer A extends number}` ? A : N,
+  Temp extends any[] = []
+> =
+  Temp['length'] extends Abs
+    ? { [P in keyof Temp]: Temp }
+    : Square<N, Abs, [...Temp, any]> extends infer S extends any[][]
+      ? Flatten<S>['length']
+      : never
+```
+
+2차 배열을 만든 다음에 평탄화 시켜서 length를 구하고자 했다.
+
+뭔가 재귀 너무 깊게 해서 안되는것 같았다.
+
+
+
+## 두번째 접근
+
+```ts
+type Square<
+  N extends number, 
+  FirstArray extends any[] = [],
+  SecondArray extends any[] = [],
+  FinalArray extends any[] = [],
+  Abs extends number = `${N}` extends `-${infer A extends number}` ? A : N,
+> =
+  SecondArray['length'] extends Abs
+    ? FinalArray['length']
+    : FirstArray['length'] extends Abs
+      ? Square<N, FirstArray, [...SecondArray, any], [...FinalArray, ...FirstArray]>
+      : Square<N, [...FirstArray, any], SecondArray, FinalArray>
+```
+
+그래서 그냥 배열 두개 만들어서 N개의 any를 가진 배열을 만들고 그걸 스프레드로 계속 더해서 length를 구했다.
+
+근데 이 경우 마지막 두개의 케이스가 너무 큰 수를 가진 튜플이라고 해당이 안됐다.
+
+
+
+100이상일때부터의 답까지는 복잡도가 너무 높아서 
+
+https://github.com/type-challenges/type-challenges/issues?q=label%3A27133+label%3Aanswer+sort%3Areactions-%2B1-desc
+
+해당 답들을 읽어보고 넘겼다.
