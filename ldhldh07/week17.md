@@ -388,3 +388,55 @@ type Square<
 https://github.com/type-challenges/type-challenges/issues?q=label%3A27133+label%3Aanswer+sort%3Areactions-%2B1-desc
 
 해당 답들을 읽어보고 넘겼다.
+
+
+
+##  Triangular Number
+
+Given a number N, find the Nth triangular number, i.e. `1 + 2 + 3 + ... + N`
+
+```ts
+type cases = [
+  Expect<Equal<Triangular<0>, 0>>,
+  Expect<Equal<Triangular<1>, 1>>,
+  Expect<Equal<Triangular<3>, 6>>,
+  Expect<Equal<Triangular<10>, 55>>,
+  Expect<Equal<Triangular<20>, 210>>,
+  Expect<Equal<Triangular<55>, 1540>>,
+  Expect<Equal<Triangular<100>, 5050>>,
+]
+```
+
+
+
+### 문제 분석
+
+숫자를 제네릭으로 받아 1부터 그 숫자까지 누적하여 더한 값을 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type Triangular<N extends number, CountArray extends any[] = [], TriangularArray extends any[] = []> =
+  CountArray['length'] extends N
+    ? TriangularArray['length']
+    : Triangular<N, [...CountArray, any], [...TriangularArray, ...CountArray, any]>
+```
+
+count를 저장하는 array를 만들고 count는 원소 하나씩 더하고, 전체 array에는 그 count에 원소 더한 배열을 더하는 식으로 구했다.
+
+
+
+### 통과하지 못하는 답
+
+```ts
+type TriangularArray<N extends number, CountArray extends any[] = []> =
+  CountArray['length'] extends N
+    ? []
+    : [...CountArray, any, ...TriangularArray<N, [...CountArray, any]>]
+
+type Triangular<N extends number> = TriangularArray<N>['length']
+```
+
+배열 내에서 재귀하는 방식이 더 깔끔하지 않을까 해서 해봤는데 이건 재귀 제한에 걸려서 마지막 2개 케이스가 안됐다.
