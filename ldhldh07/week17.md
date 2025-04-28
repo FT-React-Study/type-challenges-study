@@ -570,3 +570,120 @@ type MergeAll<XS> =
 하나와 나머지 형태로 합칠때 단순히 &로 한것이 아니라 두개의 키값을 유니온으로 합친 형식으로 햇다.
 
 그리고 각 객체에 존재하는 경우에 그 값을 유니언으로 묶었다.
+
+
+
+## CheckRepeatedTuple
+
+Implement type `CheckRepeatedChars<T>` which will return whether type `T` contains duplicated member
+
+For example:
+
+```ts
+type CheckRepeatedTuple<[1, 2, 3]>   // false
+type CheckRepeatedTuple<[1, 2, 1]>   // true
+```
+
+```ts
+type cases = [
+  Expect<Equal<CheckRepeatedTuple<[number, number, string, boolean]>, true>>,
+  Expect<Equal<CheckRepeatedTuple<[number, string]>, false>>,
+  Expect<Equal<CheckRepeatedTuple<[1, 2, 3]>, false>>,
+  Expect<Equal<CheckRepeatedTuple<[1, 2, 1]>, true>>,
+  Expect<Equal<CheckRepeatedTuple<[]>, false>>,
+  Expect<Equal<CheckRepeatedTuple<string[]>, false>>,
+  Expect<Equal<CheckRepeatedTuple<[number, 1, string, '1', boolean, true, false, unknown, any]>, false>>,
+  Expect<Equal<CheckRepeatedTuple<[never, any, never]>, true>>,
+]
+```
+
+
+
+### 문제 분석
+
+반복되는 타입이 있는지 확인하고 있는 경우 true를 반환한다.
+
+
+
+### 첫번째 접근
+
+```ts
+type CheckRepeatedTuple<T extends unknown[]> = 
+  T extends [infer First, ...infer Rest]
+    ? First extends Rest[number]
+      ? true
+      : CheckRepeatedTuple<Rest>
+    : false
+```
+
+배열을 첫번째와 나머지로 나눈다.
+
+그리고 나머지를 유니온으로 바꿔서 첫번째가 포함되는지 파악한다.
+
+이걸 마지막 원소까지 반복한다.
+
+
+
+이 경우 마지막 2개의 케이스를 통과 못했다.
+
+
+
+### 두번째 접근
+
+```ts
+type CheckRepeatedTuple<T extends unknown[]> = 
+  T extends [infer First, ...infer Rest]
+    ? Rest[number] extends infer RN  
+      ? (
+          (<T>() => T extends First ? 1 : 2) extends
+          (<T>() => T extends RN ? 1 : 2)
+            ? true
+            : CheckRepeatedTuple<Rest>
+        )
+      : never
+    : false;
+```
+
+분배법칙을 쓴 후 똑같은 타입인지 비교한다.
+
+
+
+첫번째 네번째 경우가 통과가 안된다.
+
+
+
+#### 분배법칙은 제네릭으로 입력될때만 작동한다.
+
+지금까지 항상 써왔어서 몰랐는데 분배법칙은 제네릭 타입에만 적용된다
+
+> 제네릭 타입 위에서 조건부 타입은 유니언 타입을 만나면 *분산적으로* 동작합니다. (공식문서 Conditional Types) 
+
+
+
+### 세번째 접근
+
+```ts
+type CheckRepeatedTuple<T extends unknown[],> = 
+  T extends [infer First, ...infer Rest]
+    ? Rest extends [infer FirstOfRest, ...infer RestOfRest]
+      ? (<T>() => T extends First ? 1 : 2) extends
+        (<T>() => T extends FirstOfRest ? 1 : 2)
+        ? true
+        : CheckRepeatedTuple<[First, ...RestOfRest]>
+      : false
+    : false
+```
+
+
+
+그냥 배열로 나눠서 짝을 지어서 비교했다.
+
+1과 나머지 하나하나 비교
+
+2와 3부터 하나하나 비교
+
+이를 반복해서 같은게 있으면 true를 반환하도록 했다.
+
+
+
+이때 Rest에서 하나씩 비교할때는 재귀로 [First, ...RestOfRest]를 해서 FirstOfRest로 비교한 값이 빠진채로 재귀돌게 했다. 
