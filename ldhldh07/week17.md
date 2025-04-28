@@ -440,3 +440,42 @@ type Triangular<N extends number> = TriangularArray<N>['length']
 ```
 
 배열 내에서 재귀하는 방식이 더 깔끔하지 않을까 해서 해봤는데 이건 재귀 제한에 걸려서 마지막 2개 케이스가 안됐다.
+
+
+
+## Cartesian Product
+
+Given 2 sets (unions), return its Cartesian product in a set of tuples, e.g.
+
+```ts
+CartesianProduct<1 | 2, 'a' | 'b'> 
+// [1, 'a'] | [2, 'a'] | [1, 'b'] | [2, 'b']
+```
+
+```ts
+type cases = [
+  Expect<Equal<CartesianProduct<1 | 2, 'a' | 'b'>, [2, 'a'] | [1, 'a'] | [2, 'b'] | [1, 'b']>>,
+  Expect<Equal<CartesianProduct<1 | 2 | 3, 'a' | 'b' | 'c' >, [2, 'a'] | [1, 'a'] | [3, 'a'] | [2, 'b'] | [1, 'b'] | [3, 'b'] | [2, 'c'] | [1, 'c'] | [3, 'c']>>,
+  Expect<Equal<CartesianProduct<1 | 2, 'a' | never>, [2, 'a'] | [1, 'a'] >>,
+  Expect<Equal<CartesianProduct<'a', Function | string>, ['a', Function] | ['a', string]>>,
+]
+```
+
+### 문제 분석
+
+유니언 타입으로 두개를 받는다. 그리고 두개 타입의 모든 짝을 배열로 묶고 그 배열들의 유니언 타입으로 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type CartesianProduct<T, U> = 
+  T extends unknown
+    ? U extends unknown
+      ? [T, U]
+      : never
+    : never
+```
+
+T, U를 extends로 분배법칙 돌려놓고 배열을 반환힌다. 분배법칙은 반환값들의 유니언 값으로 반환하기 때문에 정답과 같은 형식으로 타입을 반환한다.
