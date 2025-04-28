@@ -479,3 +479,94 @@ type CartesianProduct<T, U> =
 ```
 
 T, U를 extends로 분배법칙 돌려놓고 배열을 반환힌다. 분배법칙은 반환값들의 유니언 값으로 반환하기 때문에 정답과 같은 형식으로 타입을 반환한다.
+
+
+
+## Merge All
+
+Merge variadic number of types into a new type. If the keys overlap, its values should be merged into an union.
+
+For example:
+
+```ts
+type Foo = { a: 1; b: 2 }
+type Bar = { a: 2 }
+type Baz = { c: 3 }
+
+type Result = MergeAll<[Foo, Bar, Baz]> // expected to be { a: 1 | 2; b: 2; c: 3 }
+```
+
+```ts
+type cases = [
+  Expect<Equal<MergeAll<[]>, {} >>,
+  Expect<Equal<MergeAll<[{ a: 1 }]>, { a: 1 }>>,
+  Expect<Equal<
+    MergeAll<[{ a: string }, { a: string }]>,
+    { a: string }
+>
+  >,
+  Expect<Equal<
+    MergeAll<[{ }, { a: string }]>,
+    { a: string }
+>
+  >,
+  Expect<Equal<
+    MergeAll<[{ a: 1 }, { c: 2 }]>,
+    { a: 1, c: 2 }
+>
+  >,
+  Expect<Equal<
+    MergeAll<[{ a: 1, b: 2 }, { a: 2 }, { c: 3 }]>,
+    { a: 1 | 2, b: 2, c: 3 }
+>
+  >,
+  Expect<Equal<MergeAll<[{ a: 1 }, { a: number }]>, { a: number }>>,
+  Expect<Equal<MergeAll<[{ a: number }, { a: 1 }]>, { a: number }>>,
+  Expect<Equal<MergeAll<[{ a: 1 | 2 }, { a: 1 | 3 }]>, { a: 1 | 2 | 3 }>>,
+]
+```
+
+### 문제 분석
+
+여러개의 객체를 받아서 객체들간 키값
+
+### 첫번째 접근
+
+```ts
+type MergeAll<XS> = 
+  XS extends [...infer Rest, ...infer Last]
+    ? MergeAll<Rest> & Last extends infer S ? {[P in keyof S]: S[P]} : never
+    : {}
+```
+
+배열에 있는 객체들을 일단 하나와 나머지를 합치는 식으로 &로 묶고  객체 합치기 했다.
+
+이런식으로 
+
+첫번째와 두번째 merge, 
+
+첫번째 두번째 merge한 것과 세번째 merge
+
+...
+
+반복해서 전체가 merge되도록 했다.
+
+
+
+하지만 이런 경우 겹치는 키들의 값이 유니언으로 합쳐지는 것을 구현하지 못했다.
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type MergeAll<XS> = 
+    XS extends [...infer Rest, infer Last]
+      ? {[P in (keyof MergeAll<Rest> | keyof Last)]: 
+          (P extends keyof MergeAll<Rest> ? MergeAll<Rest>[P] : never) | (P extends keyof Last ? Last[P] : never)}
+      : {}
+```
+
+하나와 나머지 형태로 합칠때 단순히 &로 한것이 아니라 두개의 키값을 유니온으로 합친 형식으로 햇다.
+
+그리고 각 객체에 존재하는 경우에 그 값을 유니언으로 묶었다.
