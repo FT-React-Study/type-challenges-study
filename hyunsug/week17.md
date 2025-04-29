@@ -102,6 +102,106 @@ type JSONSchema2TS<T extends JSONObject> = T["type"] extends "string"
 
 ## [Medium-27133-Square](./medium/27133-square.ts)
 
+```ts
+type BuildTuple<N extends number, T extends unknown[] = []> = T extends {
+  length: N;
+}
+  ? T
+  : BuildTuple<N, [...T, unknown]>;
+
+type Flatten<T extends unknown[]> = T extends [infer F, ...infer R]
+  ? F extends unknown[]
+    ? [...Flatten<F>, ...Flatten<R>]
+    : [F, ...Flatten<R>]
+  : [];
+
+type Build2Matrix<
+  N extends number,
+  Matrix extends unknown[][] = []
+> = Matrix extends { length: N }
+  ? Matrix
+  : Build2Matrix<N, [...Matrix, BuildTuple<N>]>;
+
+type Square<N extends number> = `${N}` extends `-${infer M extends number}`
+  ? Square<M>
+  : Flatten<Build2Matrix<N>>["length"];
+```
+
+- 처음 생각했던 방향은 위와 같다
+- 1. N의 길이를 갖는 튜플을 만든다
+- 2. 그 튜플을 N개만큼 만들어 N x N 행렬을 만든다
+- 3. 그 행렬을 평탄화한 튜플을 만들어 그 길이를 구하면 곧 N^2이 된다.
+- 방향성을 잡았던 순간부터 이미 타입 시스템의 재귀 깊이 문제로 인해 해결 방법은 아닐 것이라 생각했고, 실제로도 2~30 정도를 지나면 한계치였다.
+- 숫자 N을 `a * 10^K`로 변환하고 `a * a`를 한 후 `a^2 + 10^(2K)`를 진행하는 방식을 고려했으나,
+- 예시에 있던 `31`과 `101`을 계산하려면 다른 방식의 접근이 필요할 것이라 생각했다.
+- 제출된 solution의 일부는 오히려 `extreme` 난이도의 `sum`과 `multiply`를 활용하는 방식을 취하고 있어 참고로 하기엔 어려운 부분이 있었다.
+
+```ts
+type Abs<N extends number> = `${N}` extends `-${infer M extends number}`
+  ? M
+  : N;
+
+type BuildTuple<N extends number, T extends unknown[] = []> = T extends {
+  length: N;
+}
+  ? T
+  : BuildTuple<N, [...T, unknown]>;
+
+export type Flatten<T extends unknown[]> = T extends [infer F, ...infer R]
+  ? F extends unknown[]
+    ? [...Flatten<F>, ...Flatten<R>]
+    : [F, ...Flatten<R>]
+  : [];
+
+type Build2Matrix<
+  N extends number,
+  Matrix extends unknown[][] = []
+> = Matrix extends { length: N }
+  ? Matrix
+  : Build2Matrix<N, [...Matrix, BuildTuple<N>]>;
+
+type NumberExceptLeadingZeros<N extends number> =
+  `${N}` extends `${infer M extends number}0` ? NumberExceptLeadingZeros<M> : N;
+
+type CountEndZero<
+  N extends string | number | bigint,
+  Zeros extends unknown[] = []
+> = N extends 0
+  ? 0
+  : `${N}` extends `${infer M}0`
+  ? CountEndZero<M, [...Zeros, unknown]>
+  : Zeros["length"];
+
+type AddZeros<
+  ToAdd extends number,
+  ZeroCount extends number,
+  Added extends string = `${ToAdd}`,
+  AddCount extends unknown[] = []
+> = AddCount["length"] extends ZeroCount
+  ? Added extends `${infer M extends number}`
+    ? M
+    : never
+  : AddZeros<0, ZeroCount, `${Added}00`, [...AddCount, unknown]>;
+
+type Square<
+  N extends number,
+  ZeroCount = CountEndZero<Abs<N>>,
+  Absed = Abs<N>
+> = N extends 0
+  ? 0
+  : ZeroCount extends 0
+  ? Flatten<Build2Matrix<Absed>>["length"]
+  : AddZeros<
+      Flatten<Build2Matrix<NumberExceptLeadingZeros<Absed>>>["length"],
+      ZeroCount
+    >;
+```
+
+- 이 방식은 끝에 있는 0을 제거하여 앞부분의 숫자를 계산 후 0의 수의 두배만큼 0을 늘려 답을 구하는 방식이다.
+- 절댓값을 취하고 0의 갯수를 세고, 0을 제외한 나머지 수에 대해 N x N 행렬을 만들어 Flatten한 길이를 구한다.
+- 그리고 그 숫자에 0의 갯수의 두배만큼 0을 늘려 최종 답을 얻는 방식이다.
+- 타입 자체는 excessive stack 오류가 발생하지만, 101을 제외한 케이스는 해결이 가능하다.
+
 ## [Medium-27152-Triangular-number](./medium/27152-triangular-number.ts)
 
 ## [Medium-27862-CartesianProduct](./medium/27862-cartesian-product.ts)
