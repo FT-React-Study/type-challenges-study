@@ -204,6 +204,26 @@ type Square<
 
 ## [Medium-27152-Triangular-number](./medium/27152-triangular-number.ts)
 
+```ts
+type Triangular<
+  N extends number,
+  C extends unknown[] = [],
+  R extends unknown[] = []
+> = C["length"] extends N
+  ? R["length"]
+  : Triangular<N, [...C, unknown], [...R, ...C, unknown]>;
+```
+
+- C를 이용하여 카운트를, R을 이용하여 누적된 합을 구한다.
+- N번째에 해당하는 삼각수는 C의 길이가 N이 될때 R의 길이가 된다.
+- N이 2인 경우 다음의 순서가 된다.
+
+- C.length = 0, R.length = 0
+- C.length = 1 [unknown], R.length = 1 [unknown]
+- C.length = 2 [unknwon, unknown], R.length = 3 [이전의 R + 이전의 C + unknown (혹은 현재의 C라고도 할 수 있다)] (즉 1 + 2)
+
+- 이처럼, 각 차례에서 C의 길이인 삼각수를 구하기 위한 다음 수를 더하는 방식으로 재귀를 진행한다.
+
 ## [Medium-27862-CartesianProduct](./medium/27862-cartesian-product.ts)
 
 ## [Medium-27932-MergeAll](./medium/27932-merge-all.ts)
