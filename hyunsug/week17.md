@@ -238,4 +238,19 @@ type CartesianProduct<T, U> = T extends infer TItem
 
 ## [Medium-27932-MergeAll](./medium/27932-merge-all.ts)
 
+```ts
+type MergeAll<
+  XS extends object[],
+  U = XS[number],
+  Keys extends PropertyKey = U extends U ? keyof U : never
+> = {
+  [K in Keys]: U extends U ? U[K & keyof U] : never;
+};
+```
+
+- `XS extends object[]`를 이용하여, 배열, 객체배열 타입을 처리할수 있도록 한다
+- U는 배열 혹은 객체배열인 XS의 각 원소 유니언이 된다
+- Keys는 U의 키를 모두 갖는 유니언이 된다. (U extends U를 통해, U를 분배하여 keyof U를 각각 얻고 이를 유니언으로 합치는 형태가 된다)
+- 마지막으로 모든 Keys에 대해 각 U 객체의 값을 가져온다. 이때 `K & keyof U`를 사용해 해당 키가 객체에 존재하는지 확인하고, 분배 법칙을 통해 모든 객체의 동일한 키에 대한 값을 유니언 타입으로 합친다. 이 과정을 통해 여러 객체의 속성을 하나의 객체로 병합하게 된다.
+
 ## [Medium-27958-CheckRepeatedTuple](./medium/27958-check-repeated-tuple.ts)
