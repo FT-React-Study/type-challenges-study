@@ -254,3 +254,31 @@ type MergeAll<
 - 마지막으로 모든 Keys에 대해 각 U 객체의 값을 가져온다. 이때 `K & keyof U`를 사용해 해당 키가 객체에 존재하는지 확인하고, 분배 법칙을 통해 모든 객체의 동일한 키에 대한 값을 유니언 타입으로 합친다. 이 과정을 통해 여러 객체의 속성을 하나의 객체로 병합하게 된다.
 
 ## [Medium-27958-CheckRepeatedTuple](./medium/27958-check-repeated-tuple.ts)
+
+```ts
+type Same<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y
+  ? 1
+  : 2
+  ? 1
+  : 2;
+
+type Includes<T extends any[], U> = T extends [infer F, ...infer R]
+  ? Same<F, U> extends true
+    ? true
+    : Includes<R, U>
+  : false;
+
+type CheckRepeatedTuple<
+  T extends unknown[],
+  Passed extends unknown[] = []
+> = T extends [infer F, ...infer R]
+  ? Includes<Passed, F> extends true
+    ? true
+    : Includes<R, F> extends true
+    ? true
+    : CheckRepeatedTuple<R, [...Passed, F]>
+  : false;
+```
+
+- 이전에 있었던 문제 중 한번만 나타나는지 확인하거나 하는 경우에 이용했던 `Includes` 타입을 이용했다.
+- 중복된 원소가 있는지를 찾아야 하기에, 지나간 원소에 대해, 혹은 뒤의 남은 배열에 대해 Includes를 확인하는 방식으로 진행했다.
