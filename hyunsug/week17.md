@@ -226,6 +226,16 @@ type Triangular<
 
 ## [Medium-27862-CartesianProduct](./medium/27862-cartesian-product.ts)
 
+```ts
+type CartesianProduct<T, U> = T extends infer TItem
+  ? U extends infer UItem
+    ? [TItem, UItem]
+    : never
+  : never;
+```
+
+- 두 유니언을 순회하면서 각 유니언의 원소 하나씩을 취해 튜플로 만들면 분배되어 튜플의 유니언이 된다.
+
 ## [Medium-27932-MergeAll](./medium/27932-merge-all.ts)
 
 ## [Medium-27958-CheckRepeatedTuple](./medium/27958-check-repeated-tuple.ts)
