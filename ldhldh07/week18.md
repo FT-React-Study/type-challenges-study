@@ -179,3 +179,116 @@ type DeepOmit<T,U> =
 그리고 해당 키값에서 더 깊이 탐색하는 경우 - `{해당 키값}.`에는 재귀를 해서 해당 속성을 찾아들어간다.
 
 재귀의 제네릭으로는 그 속성의 값(객체인)과 `.`뒤에 들어가는 문자열로 한다.
+
+
+
+## Is Odd
+
+return true is a number is odd
+
+```ts
+type cases = [
+  Expect<Equal<IsOdd<5>, true>>,
+  Expect<Equal<IsOdd<2023>, true>>,
+  Expect<Equal<IsOdd<1453>, true>>,
+  Expect<Equal<IsOdd<1926>, false>>,
+  Expect<Equal<IsOdd<2.3>, false>>,
+  Expect<Equal<IsOdd<3e23>, false>>,
+  Expect<Equal<IsOdd<3e0>, true>>,
+  Expect<Equal<IsOdd<number>, false>>,
+]
+```
+
+### 문제 분석
+
+숫자를 받아서 음수인 여부를 참/거짓으로 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type LastOfString<T extends string> =
+  T extends `${string}${infer Rest}`
+    ? Rest extends '' 
+      ? T
+      : LastOfString<Rest>
+    : T;
+
+type IsOdd<T extends number> =
+  `${T}` extends `${string}.${string}`
+    ? false
+    : `${T}` extends `${string}e${infer AfterE}`
+      ? AfterE extends '0'
+        ? true
+        : false
+      : LastOfString<`${T}`> extends '1' | '3' | '5' | '7' | '9'
+        ? true
+        : false
+```
+
+기본 골자는 맨 뒤의 숫자를 통해 판단한다.
+
+예외의 경우로 `{N}e{숫자}`형태와 소수점 형태가 있다.
+
+소수점은 어떤 형태든 짝수가 안된다.
+
+`e`는 10의 e승을 곱한다는 의미
+
+
+
+### 개선된 답
+
+```ts
+type IsOdd<T extends number> =
+  `${T}` extends `${string}.${string}`
+    ? false
+    : `${T}` extends `${string}e${infer AfterE}`
+      ? AfterE extends '0'
+        ? true
+        : false
+      : `${T}` extends `${string}${1 | 3 | 5 | 7 | 9}`
+          ? true
+          : false
+```
+
+답을 보고 생각해보니 문자열 마지막이 홀수라는 것을 굳이 마지막을 추출해서 할 필요가 없었다
+
+템플릿 리터럴로 답을 줄일 수 있었다
+
+
+
+```ts
+type IsOdd<T extends number> =
+  `${T}` extends `${string}.${string}` | `${string}e+${string}`
+    ? false
+    : `${T}` extends `${string}${1 | 3 | 5 | 7 | 9}`
+      ? true
+      : false
+```
+
+또한 E의 뒤의 값이 0이 되는걸 따로 구분하지 않아도 됐다.
+
+
+
+#### 지수표기로 된 숫자의 문자열 변환
+
+e notation은 자바스크립트에서 숫자로 변환을 해주는데
+
+```ts
+type case6 = `${3e23}` // '3e+23'
+type case7 = `${3e0}` // '3'
+type case = `${3.1221e2}` // `312.21`
+
+```
+
+이런식으로 지수 계산이 이루어지고 문자열로 변환을 한다.
+
+그리고 그 수가 너무 클 경우 `3e+23` 이런식의 지수 표기법을 그대로 문자로 반환한다.
+
+그렇기 때문에 `e+`가 들어간 상태면 무조건 false로 해주면 된다. 끝이 0으로 끝나기 때문
+
+그리고 아닌 경우는 숫자로 변환된 상태이기 때문에 기존의 로직에 포함시키면 된다.
+
+
+
