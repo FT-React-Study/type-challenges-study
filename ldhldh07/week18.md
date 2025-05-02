@@ -115,3 +115,67 @@ type ExtractToObject<T, U extends keyof T> =
 `&`와 `extends infer S ? {[P in keyof S]: S[P]}`로 합친다.
 
 그리고 제네릭 U에 T의 키값이라는 제한을 걸어준다
+
+
+
+## Deep Omit
+
+Implement a type`DeepOmit`, Like Utility types [Omit](https://www.typescriptlang.org/docs/handbook/utility-types.html#omittype-keys), A type takes two arguments.
+
+For example:
+
+```ts
+type obj = {
+  person: {
+    name: string;
+    age: {
+      value: number
+    }
+  }
+}
+
+type test1 = DeepOmit<obj, 'person'>    // {}
+type test2 = DeepOmit<obj, 'person.name'> // { person: { age: { value: number } } }
+type test3 = DeepOmit<obj, 'name'> // { person: { name: string; age: { value: number } } }
+type test4 = DeepOmit<obj, 'person.age.value'> // { person: { name: string; age: {} } }
+```
+
+```ts
+type obj = {
+  person: {
+    name: string
+    age: {
+      value: number
+    }
+  }
+}
+
+type cases = [
+  Expect<Equal<DeepOmit<obj, 'person'>, {}>>,
+  Expect<Equal<DeepOmit<obj, 'person.name'>, { person: { age: { value: number } } }>>,
+  Expect<Equal<DeepOmit<obj, 'name'>, obj>>,
+  Expect<Equal<DeepOmit<obj, 'person.age.value'>, { person: { name: string, age: {} } }>>,
+]
+```
+
+
+
+### 문제 분석
+
+객체에서 제네릭으로 입력된 이름의 키값을 제외한다.
+
+여러 단계의 객체에는 `.`으로 단계별 탐색이 이뤄진다.
+
+### 첫번째 접근 - 정답
+
+```ts
+type DeepOmit<T,U> =
+  {[P in keyof T as P extends U ? never : P]: 
+   	DeepOmit<T[P], U extends `${P extends string ? P : never}.${infer Rest}` ? Rest : never>}
+```
+
+`as`를 이용해서 키값이 U인 속성을 제거한다.
+
+그리고 해당 키값에서 더 깊이 탐색하는 경우 - `{해당 키값}.`에는 재귀를 해서 해당 속성을 찾아들어간다.
+
+재귀의 제네릭으로는 그 속성의 값(객체인)과 `.`뒤에 들어가는 문자열로 한다.
