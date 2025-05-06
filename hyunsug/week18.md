@@ -67,3 +67,25 @@ type IsOdd<T extends number> =
 - 지수 표기법으로 나타나는 경우 지수부가 0이라면 앞부분 숫자만을 재귀를 진행하여 홀수임을 판별
 - 소수 형태라면 false로 처리하고,
 - 모두 아닌 경우에 문자열 패턴 매칭으로 전환하여 마지막 자리가 1, 3, 5, 7, 9와 매칭되는 경우만을 true로 판별
+
+## [Medium-30430-TowerOfHanoi](./medium/30430-tower-of-hanoi.ts)
+
+```ts
+type CreateTuple<N extends number, R extends unknown[] = []> = R['length'] extends N ? R : CreateTuple<N, [...R, unknown]>
+
+type Prev<N extends number> = CreateTuple<N> extends [...infer Rest, unknown] ? Rest['length'] : never;
+
+type Hanoi<N extends number, From = 'A', To = 'B', Intermediate = 'C'> = N extends 0 ? [] : [
+  ...Hanoi<Prev<N>, From, Intermediate, To>,
+  [From, To],
+  ...Hanoi<Prev<N>, Intermediate, To, From>
+]
+```
+
+- `CreateTuple`을 통해 수의 길이만큼 배열을 생성, `Prev`는 이용하여 수를 1 감소시키는 헬퍼 타입
+- N개의 원판을 From에서 To로 옮기는 과정을 다음과 같이 나눈다
+  - N-1개의 원판을 From에서 Intermediate로 이동
+  - 가장 큰 원판을 From에서 To로 이동 ([From, To])
+  - N-1개의 원판을 Intermediate에서 To로 이동
+- N이 0이 되면 빈 배열을 반환하여 재귀를 종료하고, 매 단계마다 이동 경로를 튜플 형태로 반환하여 최종적으로 모든 이동 단계를 배열 형태로 표현
+
