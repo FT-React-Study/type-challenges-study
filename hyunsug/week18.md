@@ -89,3 +89,41 @@ type Hanoi<N extends number, From = 'A', To = 'B', Intermediate = 'C'> = N exten
   - N-1개의 원판을 Intermediate에서 To로 이동
 - N이 0이 되면 빈 배열을 반환하여 재귀를 종료하고, 매 단계마다 이동 경로를 튜플 형태로 반환하여 최종적으로 모든 이동 단계를 배열 형태로 표현
 
+
+## [Medium-30958-Pascal'sTriangle](./medium/30958-pascal's-triangle.ts)
+
+```ts
+type IdxNext<Arr extends 0[][] = [],  Head extends 0[][] = [[0]] > =
+  Arr extends [ infer A extends 0[], infer B extends 0[], ...infer Rest extends 0[][] ]
+    ? [ ...Head, [ ...A, ...B ], ...IdxNext<[B, ...Rest], []> ]
+    : Arr extends []
+      ? []
+      : [ ...Head, [0] ]
+
+type IdxNextByNumber<N extends number, Counter extends 0[] = [], Last extends 0[][] = [[0]]> =
+  N extends Counter['length']
+    ? Last
+    : IdxNextByNumber<N, [ ...Counter, 0 ], IdxNext<Last extends [] ? [[0]] : Last>>
+
+type IdxArr<N extends number, Arr = IdxNextByNumber<N>> =
+  Arr extends [ infer A extends 0[], ...infer Rest extends 0[][] ]
+    ? [ A['length'], ...IdxArr<0, Rest> ]
+    : []
+
+type Pascal<N extends number, Counter extends 0[] = []> =
+  N extends Counter['length']
+    ? []
+    : [ IdxArr<Counter['length']>, ...Pascal<N, [ ...Counter, 0 ]> ]
+```
+
+- 배열의 길이를 이용하여 숫자를 이용하는 기본적인 방식을 활용용
+- `IdxNext`는 파스칼 삼각형의 다음 행을 계산한다.
+  - 배열에서 첫 두 원소(A, B)를 추출하고, 이 둘을 합친 배열 `[...A, ...B]`를 생성
+  - 재귀적으로 나머지 원소들에 대해 같은 처리를 반복하며 파스칼 행을 구성
+- `IdxNextByNumber`는 N번째 행을 계산하기 위해 0부터 N-1까지 IdxNext를 반복 적용
+  - Counter를 이용해 재귀 횟수를 계산하고, Last 인자에 이전 행을 전달하여 다음 행을 계산
+- `IdxArr`는 0 배열의 길이를 이용해 표현된 행을 실제 숫자 배열로 변환
+  - 각 0[] 배열의 length 속성을 추출하여 실제 숫자 값으로 변환
+- `Pascal`은 최종적으로 N개 행을 가진 파스칼 삼각형을 생성
+  - Counter를 증가시키며 0부터 N-1까지의 각 행을 계산
+  - 각 행은 IdxArr를 통해 변환된 숫자 배열 형태로 표현됨
