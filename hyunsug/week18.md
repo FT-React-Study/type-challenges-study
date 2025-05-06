@@ -42,3 +42,28 @@ type DeepOmit<T, DeepKey extends string> = DeepKey extends keyof T
 - 먼저 DeepKey가 .으로 구분될 필요 없이 `keyof T`를 만족한다면, `Omit`을 통해 제외한다.
 - 이후 문자열 패턴 매칭을 통해 앞에서부터 keyof T를 만족하는 K라면 나머지 Rest에 대해 만족하는 해당 K에 대해서는 재귀를 진행하고, 나머지는 그대로 값을 취한다.
 - 패턴 매칭에 만족하지 않는 K라면 그대로 반환하는 방식을 취한다.
+
+## [Medium-30301-isOdd](./medium/30301-is-odd.ts)
+
+```ts
+type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? true : false;
+
+type IsOdd<T extends number> =
+  Equal<T, number> extends true
+    ? false
+  : `${T}` extends `${infer N extends number}e${infer E extends number}`
+    ? E extends 0
+      ? IsOdd<N>
+      : false
+  : `${T}` extends `${string}.${string}`
+    ? false
+  : `${T}` extends `${infer _Prefix}${1|3|5|7|9}`
+    ? true
+    : false;
+```
+
+- 보다 정교하게 만들려면 소수 + 지수표기법까지 고려해야 했을 듯 했지만 예시 케이스들만을 기준으로 했다
+- `number` 타입이 주어진다면 Equal을 이용하여 제외
+- 지수 표기법으로 나타나는 경우 지수부가 0이라면 앞부분 숫자만을 재귀를 진행하여 홀수임을 판별
+- 소수 형태라면 false로 처리하고,
+- 모두 아닌 경우에 문자열 패턴 매칭으로 전환하여 마지막 자리가 1, 3, 5, 7, 9와 매칭되는 경우만을 true로 판별
