@@ -388,3 +388,302 @@ type Square<
 https://github.com/type-challenges/type-challenges/issues?q=label%3A27133+label%3Aanswer+sort%3Areactions-%2B1-desc
 
 해당 답들을 읽어보고 넘겼다.
+
+
+
+##  Triangular Number
+
+Given a number N, find the Nth triangular number, i.e. `1 + 2 + 3 + ... + N`
+
+```ts
+type cases = [
+  Expect<Equal<Triangular<0>, 0>>,
+  Expect<Equal<Triangular<1>, 1>>,
+  Expect<Equal<Triangular<3>, 6>>,
+  Expect<Equal<Triangular<10>, 55>>,
+  Expect<Equal<Triangular<20>, 210>>,
+  Expect<Equal<Triangular<55>, 1540>>,
+  Expect<Equal<Triangular<100>, 5050>>,
+]
+```
+
+
+
+### 문제 분석
+
+숫자를 제네릭으로 받아 1부터 그 숫자까지 누적하여 더한 값을 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type Triangular<N extends number, CountArray extends any[] = [], TriangularArray extends any[] = []> =
+  CountArray['length'] extends N
+    ? TriangularArray['length']
+    : Triangular<N, [...CountArray, any], [...TriangularArray, ...CountArray, any]>
+```
+
+count를 저장하는 array를 만들고 count는 원소 하나씩 더하고, 전체 array에는 그 count에 원소 더한 배열을 더하는 식으로 구했다.
+
+
+
+### 통과하지 못하는 답
+
+```ts
+type TriangularArray<N extends number, CountArray extends any[] = []> =
+  CountArray['length'] extends N
+    ? []
+    : [...CountArray, any, ...TriangularArray<N, [...CountArray, any]>]
+
+type Triangular<N extends number> = TriangularArray<N>['length']
+```
+
+배열 내에서 재귀하는 방식이 더 깔끔하지 않을까 해서 해봤는데 이건 재귀 제한에 걸려서 마지막 2개 케이스가 안됐다.
+
+
+
+## Cartesian Product
+
+Given 2 sets (unions), return its Cartesian product in a set of tuples, e.g.
+
+```ts
+CartesianProduct<1 | 2, 'a' | 'b'> 
+// [1, 'a'] | [2, 'a'] | [1, 'b'] | [2, 'b']
+```
+
+```ts
+type cases = [
+  Expect<Equal<CartesianProduct<1 | 2, 'a' | 'b'>, [2, 'a'] | [1, 'a'] | [2, 'b'] | [1, 'b']>>,
+  Expect<Equal<CartesianProduct<1 | 2 | 3, 'a' | 'b' | 'c' >, [2, 'a'] | [1, 'a'] | [3, 'a'] | [2, 'b'] | [1, 'b'] | [3, 'b'] | [2, 'c'] | [1, 'c'] | [3, 'c']>>,
+  Expect<Equal<CartesianProduct<1 | 2, 'a' | never>, [2, 'a'] | [1, 'a'] >>,
+  Expect<Equal<CartesianProduct<'a', Function | string>, ['a', Function] | ['a', string]>>,
+]
+```
+
+### 문제 분석
+
+유니언 타입으로 두개를 받는다. 그리고 두개 타입의 모든 짝을 배열로 묶고 그 배열들의 유니언 타입으로 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type CartesianProduct<T, U> = 
+  T extends unknown
+    ? U extends unknown
+      ? [T, U]
+      : never
+    : never
+```
+
+T, U를 extends로 분배법칙 돌려놓고 배열을 반환힌다. 분배법칙은 반환값들의 유니언 값으로 반환하기 때문에 정답과 같은 형식으로 타입을 반환한다.
+
+
+
+## Merge All
+
+Merge variadic number of types into a new type. If the keys overlap, its values should be merged into an union.
+
+For example:
+
+```ts
+type Foo = { a: 1; b: 2 }
+type Bar = { a: 2 }
+type Baz = { c: 3 }
+
+type Result = MergeAll<[Foo, Bar, Baz]> // expected to be { a: 1 | 2; b: 2; c: 3 }
+```
+
+```ts
+type cases = [
+  Expect<Equal<MergeAll<[]>, {} >>,
+  Expect<Equal<MergeAll<[{ a: 1 }]>, { a: 1 }>>,
+  Expect<Equal<
+    MergeAll<[{ a: string }, { a: string }]>,
+    { a: string }
+>
+  >,
+  Expect<Equal<
+    MergeAll<[{ }, { a: string }]>,
+    { a: string }
+>
+  >,
+  Expect<Equal<
+    MergeAll<[{ a: 1 }, { c: 2 }]>,
+    { a: 1, c: 2 }
+>
+  >,
+  Expect<Equal<
+    MergeAll<[{ a: 1, b: 2 }, { a: 2 }, { c: 3 }]>,
+    { a: 1 | 2, b: 2, c: 3 }
+>
+  >,
+  Expect<Equal<MergeAll<[{ a: 1 }, { a: number }]>, { a: number }>>,
+  Expect<Equal<MergeAll<[{ a: number }, { a: 1 }]>, { a: number }>>,
+  Expect<Equal<MergeAll<[{ a: 1 | 2 }, { a: 1 | 3 }]>, { a: 1 | 2 | 3 }>>,
+]
+```
+
+### 문제 분석
+
+여러개의 객체를 받아서 객체들간 키값
+
+### 첫번째 접근
+
+```ts
+type MergeAll<XS> = 
+  XS extends [...infer Rest, ...infer Last]
+    ? MergeAll<Rest> & Last extends infer S ? {[P in keyof S]: S[P]} : never
+    : {}
+```
+
+배열에 있는 객체들을 일단 하나와 나머지를 합치는 식으로 &로 묶고  객체 합치기 했다.
+
+이런식으로 
+
+첫번째와 두번째 merge, 
+
+첫번째 두번째 merge한 것과 세번째 merge
+
+...
+
+반복해서 전체가 merge되도록 했다.
+
+
+
+하지만 이런 경우 겹치는 키들의 값이 유니언으로 합쳐지는 것을 구현하지 못했다.
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type MergeAll<XS> = 
+    XS extends [...infer Rest, infer Last]
+      ? {[P in (keyof MergeAll<Rest> | keyof Last)]: 
+          (P extends keyof MergeAll<Rest> ? MergeAll<Rest>[P] : never) | (P extends keyof Last ? Last[P] : never)}
+      : {}
+```
+
+하나와 나머지 형태로 합칠때 단순히 &로 한것이 아니라 두개의 키값을 유니온으로 합친 형식으로 햇다.
+
+그리고 각 객체에 존재하는 경우에 그 값을 유니언으로 묶었다.
+
+
+
+## CheckRepeatedTuple
+
+Implement type `CheckRepeatedChars<T>` which will return whether type `T` contains duplicated member
+
+For example:
+
+```ts
+type CheckRepeatedTuple<[1, 2, 3]>   // false
+type CheckRepeatedTuple<[1, 2, 1]>   // true
+```
+
+```ts
+type cases = [
+  Expect<Equal<CheckRepeatedTuple<[number, number, string, boolean]>, true>>,
+  Expect<Equal<CheckRepeatedTuple<[number, string]>, false>>,
+  Expect<Equal<CheckRepeatedTuple<[1, 2, 3]>, false>>,
+  Expect<Equal<CheckRepeatedTuple<[1, 2, 1]>, true>>,
+  Expect<Equal<CheckRepeatedTuple<[]>, false>>,
+  Expect<Equal<CheckRepeatedTuple<string[]>, false>>,
+  Expect<Equal<CheckRepeatedTuple<[number, 1, string, '1', boolean, true, false, unknown, any]>, false>>,
+  Expect<Equal<CheckRepeatedTuple<[never, any, never]>, true>>,
+]
+```
+
+
+
+### 문제 분석
+
+반복되는 타입이 있는지 확인하고 있는 경우 true를 반환한다.
+
+
+
+### 첫번째 접근
+
+```ts
+type CheckRepeatedTuple<T extends unknown[]> = 
+  T extends [infer First, ...infer Rest]
+    ? First extends Rest[number]
+      ? true
+      : CheckRepeatedTuple<Rest>
+    : false
+```
+
+배열을 첫번째와 나머지로 나눈다.
+
+그리고 나머지를 유니온으로 바꿔서 첫번째가 포함되는지 파악한다.
+
+이걸 마지막 원소까지 반복한다.
+
+
+
+이 경우 마지막 2개의 케이스를 통과 못했다.
+
+
+
+### 두번째 접근
+
+```ts
+type CheckRepeatedTuple<T extends unknown[]> = 
+  T extends [infer First, ...infer Rest]
+    ? Rest[number] extends infer RN  
+      ? (
+          (<T>() => T extends First ? 1 : 2) extends
+          (<T>() => T extends RN ? 1 : 2)
+            ? true
+            : CheckRepeatedTuple<Rest>
+        )
+      : never
+    : false;
+```
+
+분배법칙을 쓴 후 똑같은 타입인지 비교한다.
+
+
+
+첫번째 네번째 경우가 통과가 안된다.
+
+
+
+#### 분배법칙은 제네릭으로 입력될때만 작동한다.
+
+지금까지 항상 써왔어서 몰랐는데 분배법칙은 제네릭 타입에만 적용된다
+
+> 제네릭 타입 위에서 조건부 타입은 유니언 타입을 만나면 *분산적으로* 동작합니다. (공식문서 Conditional Types) 
+
+
+
+### 세번째 접근
+
+```ts
+type CheckRepeatedTuple<T extends unknown[],> = 
+  T extends [infer First, ...infer Rest]
+    ? Rest extends [infer FirstOfRest, ...infer RestOfRest]
+      ? (<T>() => T extends First ? 1 : 2) extends
+        (<T>() => T extends FirstOfRest ? 1 : 2)
+        ? true
+        : CheckRepeatedTuple<[First, ...RestOfRest]>
+      : false
+    : false
+```
+
+
+
+그냥 배열로 나눠서 짝을 지어서 비교했다.
+
+1과 나머지 하나하나 비교
+
+2와 3부터 하나하나 비교
+
+이를 반복해서 같은게 있으면 true를 반환하도록 했다.
+
+
+
+이때 Rest에서 하나씩 비교할때는 재귀로 [First, ...RestOfRest]를 해서 FirstOfRest로 비교한 값이 빠진채로 재귀돌게 했다. 
