@@ -292,3 +292,59 @@ type case = `${3.1221e2}` // `312.21`
 
 
 
+## Tower of hanoi
+
+Simulate the solution for the Tower of Hanoi puzzle. Your type should take the number of rings as input an return an array of steps to move the rings from tower A to tower B using tower C as additional. Each entry in the array should be a pair of strings `[From, To]` which denotes ring being moved `From -> To`.
+
+
+
+```ts
+type Tests = [
+  Expect<Equal<Hanoi<0>, []>>,
+  Expect<Equal<Hanoi<1>, [['A', 'B']]>>,
+  Expect<Equal<Hanoi<2>, [['A', 'C'], ['A', 'B'], ['C', 'B']]>>,
+  Expect<Equal<Hanoi<3>, [['A', 'B'], ['A', 'C'], ['B', 'C'], ['A', 'B'], ['C', 'A'], ['C', 'B'], ['A', 'B']]>>,
+  Expect<Equal<Hanoi<5>, [['A', 'B'], ['A', 'C'], ['B', 'C'], ['A', 'B'], ['C', 'A'], ['C', 'B'], ['A', 'B'], ['A', 'C'], ['B', 'C'], ['B', 'A'], ['C', 'A'], ['B', 'C'], ['A', 'B'], ['A', 'C'], ['B', 'C'], ['A', 'B'], ['C', 'A'], ['C', 'B'], ['A', 'B'], ['C', 'A'], ['B', 'C'], ['B', 'A'], ['C', 'A'], ['C', 'B'], ['A', 'B'], ['A', 'C'], ['B', 'C'], ['A', 'B'], ['C', 'A'], ['C', 'B'], ['A', 'B']]>>,
+]
+```
+
+
+
+### 문제 해석
+
+하노이의 탑을 타입으로 구현한다. N은 현재 A에 껴져 있는 링의 갯수이다.
+
+그리고 각 기둥에서 맨위의 링을 옮기는 것을 각 탑 이름의 Pair 배열 타입으로 반환한다.
+
+
+
+### 정답
+
+```ts
+type Hanoi<
+  N extends number,
+  From = "A",
+  To = "B",
+  Intermediate = "C",
+  IndexArray extends Array<any> = []
+> = IndexArray["length"] extends N
+  ? []
+  : [
+      ...Hanoi<N, From, Intermediate, To, [...IndexArray, any]>,
+      [From, To],
+      ...Hanoi<N, Intermediate, To, From, [...IndexArray, any]>
+    ]
+```
+
+
+
+먼저 답을 찾아봤다.
+
+로직은 intermediate 기둥에 하나를 빼고 다 옮긴다.
+
+하나만 b로 옮긴다.
+
+intermediate에 있는 원판들을 다 b로 옮긴다.
+
+였고 그걸 구현한 답이었다.
+
