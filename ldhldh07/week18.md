@@ -348,3 +348,152 @@ intermediate에 있는 원판들을 다 b로 옮긴다.
 
 였고 그걸 구현한 답이었다.
 
+
+
+## Pascal Triangle
+
+Given a number N, construct the Pascal's triangle with N rows. [Wikipedia](https://en.wikipedia.org/wiki/Pascal's_triangle)
+
+```ts
+type cases = [
+  Expect<
+    Equal<
+      Pascal<1>,
+      [
+        [1],
+      ]
+    >
+  >,
+  Expect<
+    Equal<
+      Pascal<3>,
+      [
+        [1],
+        [1, 1],
+        [1, 2, 1],
+      ]
+    >
+  >,
+  Expect<
+    Equal<
+      Pascal<5>,
+      [
+        [1],
+        [1, 1],
+        [1, 2, 1],
+        [1, 3, 3, 1],
+        [1, 4, 6, 4, 1],
+      ]
+    >
+  >,
+  Expect<
+    Equal<
+      Pascal<7>,
+      [
+        [1],
+        [1, 1],
+        [1, 2, 1],
+        [1, 3, 3, 1],
+        [1, 4, 6, 4, 1],
+        [1, 5, 10, 10, 5, 1],
+        [1, 6, 15, 20, 15, 6, 1],
+      ]
+    >
+  >,
+]
+```
+
+
+
+### 문제 분석
+
+파스칼의 삼각형을 구현해야한다.
+
+
+
+### 첫번째 접근
+
+```ts
+type PlusPrevRow<
+  PrevRow extends any[],
+  IndexArray extends any[]
+> =
+  IndexArray extends []
+  ? [any]
+  : IndexArray['length'] extends PrevRow['length']
+    ? [any]
+    : IndexArray extends [any, infer Rest extends any[]]
+      ? [...PrevRow[Rest['length']], ...PrevRow[IndexArray['length']]] 
+      : never
+
+type b = PlusPrevRow<[[any], [any, any], [any]], [ any]>
+
+type Pascal<
+  N extends number,
+  ColumnIndexArray extends any[] = [], 
+  RowIndexArray extends any[] = [],
+  Temp extends any[] = [],
+  Result extends any[][] = []
+>  = 
+  ColumnIndexArray['length'] extends N
+    ? Result
+    : RowIndexArray['length'] extends ColumnIndexArray['length']
+      ? Pascal<N, [...ColumnIndexArray, any], [], [], [...Result, Temp]> 
+      : ColumnIndexArray extends []
+       ? Pascal<
+          N, 
+          ColumnIndexArray, 
+          [...RowIndexArray, any], 
+          [...Temp, [any]], 
+          Result
+        > 
+      : Pascal<
+          N, 
+          ColumnIndexArray, 
+          [...RowIndexArray, any], 
+          [...Temp, PlusPrevRow<Result[ColumnIndexArray['length']], [...RowIndexArray, any]>], 
+          Result
+        > 
+
+```
+
+이전줄의 이전 인덱스 값과 이전줄의 같은 인덱스 값을 가지고 합쳐서 row에 넣고 이를 반복해서 전체 이차배열을 만들어가려고 했다.
+
+그리고 마지막에 한꺼번에 숫자로 바꾸고자 했다.
+
+
+
+### 정답
+
+```ts
+type GetNextLine<
+  T extends number[][],
+  Ret extends number[][] = []
+> = T extends [
+  infer A extends number[],
+  infer B extends number[],
+  ...infer Rest extends number[][]
+]
+  ? GetNextLine<[B, ...Rest], [...Ret, [...A, ...B]]>
+  : Ret;
+
+type Pascal<
+  N extends number,
+  Ret extends number[][][] = [[[1]]]
+> = Ret["length"] extends N
+  ? {
+      [P in keyof Ret]: Help<Ret[P]>;
+    }
+  : Pascal<N, [...Ret, GetNextLine<[[], ...[[], ...Ret][Ret["length"]], []]>]>;
+
+type Help<T extends number[][]> = {
+  [P1 in keyof T]: T[P1]["length"];
+};
+```
+
+안풀려서 같은 방식으로 푼 답을 봤다.
+
+개별 항목을 탐색해서 가져오는 것이 아니라 infer로 두 원소를 가져와서 해결하는 방식이 좋다고 생각이 들었다.
+
+
+
