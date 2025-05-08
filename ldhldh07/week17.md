@@ -534,7 +534,7 @@ type cases = [
 
 ```ts
 type MergeAll<XS> = 
-  XS extends [...infer Rest, ...infer Last]
+  XS extends [...infer Rest, infer Last]
     ? MergeAll<Rest> & Last extends infer S ? {[P in keyof S]: S[P]} : never
     : {}
 ```
