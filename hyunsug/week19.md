@@ -29,3 +29,17 @@ type CompareArrayLength<T extends any[], U extends any[]> = [T, U] extends [
 ## [Medium-35191-Trace](./medium/35191-trace.ts)
 
 ## [Medium-35252-IsAlphabet](./medium/35252-is-alphabet.ts)
+
+```ts
+type Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+type StringToTuple<
+  S extends string,
+  R extends readonly string[] = []
+> = S extends `${infer F}${infer Rest}` ? StringToTuple<Rest, [...R, F]> : R;
+
+type IsAlphabet<S extends string> = S extends StringToTuple<Alphabet>[number]
+  ? true
+  : false;
+```
+
+- 알파벳을 모두 갖는 튜플을 만들고, 이를 다시 유니언으로 전환하여 타입 체크를 진행
