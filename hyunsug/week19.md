@@ -28,6 +28,25 @@ type CompareArrayLength<T extends any[], U extends any[]> = [T, U] extends [
 
 ## [Medium-35191-Trace](./medium/35191-trace.ts)
 
+```ts
+type Enumerate<
+  N extends number,
+  Acc extends number[] = []
+> = Acc["length"] extends N ? Acc : Enumerate<N, [...Acc, Acc["length"]]>;
+
+type Trace<
+  T extends any[][],
+  Indexes extends number[] = Enumerate<T["length"]>
+> = {
+  [K in keyof Indexes]: T[Indexes[K]][Indexes[K]];
+}[number];
+```
+
+- `Enumerate`: 배열, 즉 행렬의 길이 크기와 동일하게 숫자 배열을 생성 - 길이가 2라면 [0, 1]
+- `[K in keyof Indexes]` 0 ~ `N-1`에 해당하는 숫자를 이용하여 배열 Mapped Type을 생성
+- `T[Indexes[K]][Indexes[K]]`는 [0, 0], [1, 1], [2, 2] 의 형태로 각 인덱스에 해당하는 좌상우하로의 대각선 원소들을 추출
+- 이를 유니언으로 전환하여 반환
+
 ## [Medium-35252-IsAlphabet](./medium/35252-is-alphabet.ts)
 
 ```ts
