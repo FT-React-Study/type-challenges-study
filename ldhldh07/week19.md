@@ -440,3 +440,66 @@ type LongestCommonPrefix<T extends string[], P extends string = ''>
 ```
 
 First를 가져온 후 해당 단어가 뒤의 배열에 다 일치하는지 확인하고 확인 됐을 때만 이를 공통 prefix로 넘겼다.
+
+
+
+## Trace
+
+The trace of a square matrix is the sum of the elements on its main diagonal. However, it's difficult to calculate the sum with type system. To make things simple, let's return the elements on the main diagonal with union type.
+
+For example:
+
+```ts
+type Arr = [
+  [1,2],
+  [3,4]
+]
+type Test = Trace<Arr> // expected to be 1 | 4
+```
+
+```ts
+type cases = [
+  Expect<Equal<Trace<[[1, 2], [3, 4]]>, 1 | 4>>,
+  Expect<Equal<Trace<[[0, 1, 1], [2, 0, 2], [3, 3, 0]]>, 0>>,
+  Expect<Equal<Trace<[['a', 'b', ''], ['c', '', ''], ['d', 'e', 'f']]>, 'a' | '' | 'f'>>,
+]
+```
+
+
+
+### 문제 분석
+
+2차원 행렬 배열에서 대각선에 위치해있는 원소들을 유니언 타입으로 반환한다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type Trace<T extends any[][], IndexArray extends any[] = []> = 
+  IndexArray['length'] extends T['length']
+    ? never
+    : T[IndexArray['length']][IndexArray['length']] | Trace<T, [...IndexArray, any]>
+```
+
+숫자를 행렬의 크기만큼 가면서 해당 숫자를 두번 탐색하는 식으로 했다.
+
+
+
+### 더 나은 정답
+
+```ts
+type Trace<T extends any[][]> = 
+  {[P in keyof T]: T[P][P]}[number]
+```
+
+이런식의 방향성으로 풀이를 풀고 싶었는데
+
+P가 P안에서 탐색되는지에 대한 불명확함에서 오는 에러가 났다.
+
+```ts
+type Trace<T extends any[][]> = 
+  {[P in keyof T]: T[P] extends infer A ? A extends {[K in P]: any} ? A[P] : never : never}[number]
+```
+
+그래서 infer로 T[P]를 P를 포함한 객체로 추론해서 해당 에러를 없엤다.
