@@ -503,3 +503,47 @@ type Trace<T extends any[][]> =
 ```
 
 그래서 infer로 T[P]를 P를 포함한 객체로 추론해서 해당 에러를 없엤다.
+
+
+
+## IsAlphabet
+
+Determine if the given letter is an alphabet.
+
+```ts
+type cases = [
+  Expect<Equal<IsAlphabet<'A'>, true>>,
+  Expect<Equal<IsAlphabet<'z'>, true>>,
+  Expect<Equal<IsAlphabet<'9'>, false>>,
+  Expect<Equal<IsAlphabet<'!'>, false>>,
+  Expect<Equal<IsAlphabet<'😂'>, false>>,
+  Expect<Equal<IsAlphabet<''>, false>>,
+]
+```
+
+
+### 문제분석
+
+알파벳일 경우 true 아닌경우 false를 했다.
+
+
+
+### 첫번째 접근 - 정답
+
+```ts
+type IsAlphabet<S extends string> = 
+  S extends 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' 
+          | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' 
+          | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' 
+          | 'V' | 'W' | 'X' | 'Y' | 'Z' | 'a' | 'b'
+          | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i'
+          | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p'
+          | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w'
+          | 'x' | 'y' | 'z'
+    ? true
+    : false
+```
+
+그냥 다 걸어줬다.
+
+뭔가 특별한 풀이가 있다 싶어서 봤는데 LowerCase, Uppercase를 이용한 답이었다.
