@@ -365,3 +365,78 @@ type DefinedPartial<T, KeyOfT extends keyof T = keyof T> =
 
 T의 키값을 분배법칙으로 돌린다음에 해당 키가 제외되는 Omit을 이용해서 조합의 로직에 해당되는 재귀를 돌릴 수 있다.
 
+
+
+## Longest common prefix
+
+Write a type, `LongestCommonPrefix` that returns the longest common prefix string amongst a tuple of strings.
+
+If there is no common prefix, return an empty string `""`.
+
+```ts
+type Common = LongestCommonPrefix<["flower", "flow", "flight"]>
+//   ?^ "fl"
+
+type Uncommon = LongestCommonPrefix<["dog", "racecar", "race"]>
+//   ?^ ""
+```
+
+```ts
+type cases = [
+  Expect<Equal<LongestCommonPrefix<['flower', 'flow', 'flight']>, 'fl'>>,
+  Expect<Equal<LongestCommonPrefix<['dog', 'racecar', 'race']>, ''>>,
+  Expect<Equal<LongestCommonPrefix<['', '', '']>, ''>>,
+  Expect<Equal<LongestCommonPrefix<['a', '', '']>, ''>>,
+  Expect<Equal<LongestCommonPrefix<['', 'a', '']>, ''>>,
+  Expect<Equal<LongestCommonPrefix<['', '', 'a']>, ''>>,
+  Expect<Equal<LongestCommonPrefix<['a', 'a', '']>, ''>>,
+  Expect<Equal<LongestCommonPrefix<['a', '', 'a']>, ''>>,
+  Expect<Equal<LongestCommonPrefix<['', 'a', 'a']>, ''>>,
+  Expect<Equal<LongestCommonPrefix<['a', 'a', 'a']>, 'a'>>,
+  Expect<Equal<LongestCommonPrefix<['abc', 'abcd', 'abcde']>, 'abc'>>,
+  Expect<Equal<LongestCommonPrefix<[' ', ' ', ' ']>, ' '>>,
+  Expect<Equal<LongestCommonPrefix<['type-challenges', 'type-hero', 'typescript']>, 'type'>>,
+]
+
+```
+
+### 문제분석
+
+앞에서부터 겹치는 단어를 추출해서 가장 긴 공통 prefix를 반환한다.
+
+
+
+### 첫번째 접근
+
+```ts
+type LongestCommonPrefix<T extends string[], P extends string = ''>
+  = T extends [`${P}${infer First}${string}`, ...infer Rest extends string[]]
+    ? LongestCommonPrefix<Rest, `${P}${First}`>
+    : P
+```
+
+T의 첫번째에서 현재까지 구한 공통 prefix를 제외한 첫번째 단어를 추출한다
+
+이 경우 앞에서부터 순서대로 일치하기만 해도 뒤 배열로 넘어가는 방식이라 틀렸다
+
+
+
+### 두번째 접근
+
+```ts
+type IsCommonPrefix<T extends string, U extends string[]>
+ = U extends [infer First, ...infer Rest extends string[]]
+  ? First extends `${T}${string}`
+    ? IsCommonPrefix<T, Rest>
+    : false
+  : true
+
+type LongestCommonPrefix<T extends string[], P extends string = ''>
+  = T extends [`${P}${infer First}${string}`, ...infer Rest extends string[]]
+    ? IsCommonPrefix<`${P}${First}`, Rest> extends true
+      ? LongestCommonPrefix<T, `${P}${First}`>
+      : P
+    : P
+```
+
+First를 가져온 후 해당 단어가 뒤의 배열에 다 일치하는지 확인하고 확인 됐을 때만 이를 공통 prefix로 넘겼다.
