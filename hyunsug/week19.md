@@ -2,6 +2,63 @@
 
 ## [Medium-30970-IsFixedStringLiteralType](./medium/30970-is-fixed-string-literal-type.ts)
 
+```ts
+type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y
+  ? 1
+  : 2
+  ? true
+  : false;
+
+type IsUnion<T, U = T> = [T] extends [never]
+  ? false
+  : T extends T
+  ? [U] extends [T]
+    ? false
+    : true
+  : false;
+
+type IsDynamic<T> = Equal<T, string> extends true
+  ? true
+  : Equal<T, `${bigint}`> extends true
+  ? true
+  : Equal<T, `${number}`> extends true
+  ? true
+  : Equal<T, `${boolean}`> extends true
+  ? true
+  : Equal<T, `${string & {}}`> extends true
+  ? true
+  : false;
+
+type IsFixedStringLiteralType<S extends string> = [S] extends [never]
+  ? false
+  : IsUnion<S> extends true
+  ? false
+  : S extends `${infer F}${infer Rest extends string}`
+  ? IsDynamic<F> extends true
+    ? false
+    : Rest extends ""
+    ? true
+    : IsFixedStringLiteralType<Rest>
+  : false;
+```
+
+```ts
+type VariableTemplateTypes =
+  | `${string}`
+  | `${string & {}}`
+  | `${number}`
+  | `${bigint}`
+  | `${boolean & {}}`;
+```
+
+- 처음에는 위의 `VariableTemplateTypes`를 이용하여 하나씩 타입 검사를 진행하려 했으나 유니언을 Equal 타입에 전달하는 것보다 분리하여 전달하는게 낫다고 판단함
+
+- 먼저 `[never]`과의 비교로 never 타입을 제거하고, IsUnion을 통해 fixed string이 아닌 유니언을 제거
+- IsDynamic에 전달하기 위해 문자열을 하나씩 분리하여 전달함
+- 이때, F가 `true`, `false`, `null`, `undefined`인 경우 템플릿 리터럴로 감쌀 시 이는 단순한 문자열이 되어 `t`, `f`와 같이 문자열이 조각나 전달됨
+- 하지만, `${string}`과 같은 경우 `string`이 전달되어 Equal 타입에서 Dynamic 타입으로 판단됨
+- 분해된 문자열을 순차적으로 진행하며 Rest에 대해서도 반복하고, Rest 반복이 끝났을 때 빈 문자열이라면 Fixed 스트링 리터럴로 판단함
+
 ## [Medium-34007-CompareArrayLength](./medium/34007-compare-array-length.ts)
 
 ```ts
