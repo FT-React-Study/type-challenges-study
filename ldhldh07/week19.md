@@ -207,3 +207,50 @@ type IsFixedStringLiteralType<S extends string> =
 ```
 
 그걸 이용해서 [] 배열 타입에 분배법칙으로 타입들을 넣고 유니언이 아닐때만 단일 배열 안에 원소가 들어가는 같은 형태인것을 이용한 것이다.
+
+
+
+## Compare Array Length
+
+Implement `CompareArrayLength` to compare two array length(T & U).
+
+If length of T array is greater than U, return 1; If length of U array is greater than T, return -1; If length of T array is equal to U, return 0.
+
+```ts
+type cases = [
+  Expect<Equal<CompareArrayLength<[1, 2, 3, 4], [5, 6]>, 1>>,
+  Expect<Equal<CompareArrayLength<[1, 2], [3, 4, 5, 6]>, -1>>,
+  Expect<Equal<CompareArrayLength<[], []>, 0>>,
+  Expect<Equal<CompareArrayLength<[1, 2, 3], [4, 5, 6]>, 0>>,
+]
+```
+
+### 문제 분석
+
+두개의 배열의 길이를 비교한다, T가 길면 1, U가 길면 -1, 똑같으면 0을 반환한다.
+
+
+
+### 첫번째 접근
+
+```	ts
+type CompareArrayLength<T extends any[], U extends any[]> =
+  T extends []
+    ? U extends []
+      ? 0
+      : -1
+    : U extends []
+      ? 1
+      : CompareArrayLength<T extends [infer _, ...infer TRest] ? TRest : never, U extends [infer _, ...infer URest] ? URest : never>
+
+```
+
+
+
+T와 U를 하나씩 원소 빼가면서 비교한다.
+
+먼저 비었다는건 더 짧다는 원리를 사용했다.
+
+4가지 경우로 T가 비었고 U가 안비었을 때는 1을 반환하고, U가 안비었고 T가 비었을때는 -1, 둘 다 비었을 때는 0을 반환한다.
+
+둘 다 안비었을 때는 재귀로 하나 뺀 배열들로 돌린다.
