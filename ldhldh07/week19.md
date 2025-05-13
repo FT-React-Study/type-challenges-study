@@ -231,7 +231,7 @@ type cases = [
 
 
 
-### 첫번째 접근
+### 첫번째 접근 - 정답
 
 ```	ts
 type CompareArrayLength<T extends any[], U extends any[]> =
@@ -254,3 +254,114 @@ T와 U를 하나씩 원소 빼가면서 비교한다.
 4가지 경우로 T가 비었고 U가 안비었을 때는 1을 반환하고, U가 안비었고 T가 비었을때는 -1, 둘 다 비었을 때는 0을 반환한다.
 
 둘 다 안비었을 때는 재귀로 하나 뺀 배열들로 돌린다.
+
+
+
+## Defined Partial Record 
+
+Using a Record with union types as keys doesn't allow you to make an object with only some of them
+
+```ts
+const record: Record<'a' | 'b' | 'c', number> = { a: 42, b: 10 } 
+// error: Property 'c' is missing in type '{ a: number; b: number; }' 
+// but required in type 'Record<"a" | "b" | "c", number>'
+```
+
+
+
+Using a Partial Record with union types as keys allows you to make an object without all union members, but makes all keys and values optional, potentially leaving them undefined
+
+```ts
+const partial: Partial<Record<'a' | 'b' | 'c', number>> = { a: 42 } 
+const partialType = typeof partial // { a?: number | undefined, b? : number | undefined, c? : number | undefined }
+const operation = 0 + partial.a // error: 'partial.a' is possibly 'undefined'
+const access = partial.c // possible, type doesn't know that there is no such key
+```
+
+
+
+You need to make a type that takes the best of both worlds, creates all combinations of all the types in the union, so using a key that exists in the object gives you a defined type, but using a key that exists in the union and not in the object throws an error
+
+```ts
+const best: DefinedPartial<Record<'a' | 'b' | 'c', number>> = { a: 42 } 
+const sum = 0 + best.a // 42
+const error = best.b // error: property 'b' does not exist on type '{ a: number; }'
+```
+
+```ts
+type A1 = Record<'a' | 'b', string>
+type E1 = { a: string } |
+  { b: string } |
+  { a: string, b: string }
+type D1 = DefinedPartial<A1>
+type C1 = Expect<Equal<D1, E1>>
+
+type A2 = Record<'a' | 'b' | 'c', string>
+type E2 = { a: string } |
+  { b: string } |
+  { c: string } |
+  { a: string, b: string } |
+  { a: string, c: string } |
+  { b: string, c: string } |
+  { a: string, b: string, c: string }
+type D2 = DefinedPartial<A2>
+type C2 = Expect<Equal<D2, E2>>
+
+type A3 = Record<'a', number>
+type E3 = { a: number }
+type D3 = DefinedPartial<A3>
+type C3 = Expect<Equal<D3, E3>>
+
+type A4 = Record<'a', number>
+type E4 = { a: string }
+type D4 = DefinedPartial<A4>
+type C4 = ExpectTrue<NotAny<D4> | NotEqual<D4, E4>>
+
+type A5 = Record<'a' | 'c', number>
+type E5 = { a: string, b: string }
+type D5 = DefinedPartial<A5>
+type C5 = ExpectTrue<NotAny<D5> | NotEqual<D5, E5>>
+
+type A6 = { a: string, b: string }
+type E6 = { a: string } |
+  { b: string } |
+  { a: string, b: string }
+type D6 = DefinedPartial<A6>
+type C6 = Expect<Equal<D6, E6>>
+
+```
+
+### 문제 분석
+
+키값을 유니언으로 받으면 해당 값들이 키값으로 나뉘어진 객체가 된다. 그 객체를 제네릭으로 넣었을때 키값들의 경우의 수가 나뉘어 유니언으로 이뤄진 타입을 반환
+
+
+
+### 첫번째 접근
+
+```ts
+type DefinedPartial<T, KeyOfT = keyof T> =
+  KeyOfT extends unknown
+    ? {KeyOfT: T[KeyOfT extends keyof T ? KeyOfT : never]} | DefinedPartial<T, Exclude<keyof T, KeyOfT>>
+    : never
+```
+
+이전 combination관련 문제들을 참고했다.
+
+이 경우 keyof T가 분배가 되는 것이 아니라 동적이 키가 된다고 한다.
+
+
+
+### 두번째 접근 - 정답
+
+```ts
+type DefinedPartial<T, KeyOfT extends keyof T = keyof T> = 
+  KeyOfT extends unknown
+    ? T | DefinedPartial<Omit<T, KeyOfT>>
+    : never;
+```
+
+보다 단순한 형태가 답이었다.
+
+T의 키값을 분배법칙으로 돌린다음에 해당 키가 제외되는 Omit을 이용해서 조합의 로직에 해당되는 재귀를 돌릴 수 있다.
+
