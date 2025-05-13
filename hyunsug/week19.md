@@ -81,6 +81,19 @@ type CompareArrayLength<T extends any[], U extends any[]> = [T, U] extends [
 
 ## [Medium-34857-DefinedPartialRecord](./medium/34857-defined-partial-record.ts)
 
+```ts
+type DefinedPartial<T, K extends keyof T = keyof T> = K extends any
+  ? T | DefinedPartial<Omit<T, K>>
+  : never;
+```
+
+- 처음에는 AllCombination과 같은 이전의 타입들을 활용할 방안을 생각했음
+- 하지만 직접 활용하는 대신 앞선 문제들의 활용 방향들을 생각하여 풀이를 진행함
+- `T`에 타입 제한을 걸지는 않았지만 `Record<string, any>`의 형태를 받게 됨
+- `K`를 `keyof T`로 제한하고 `keyof T`로 초기화함
+- `K extends any` (or `unknown` 등등)을 통해 K를 분배함
+- `T | DefinedPartial<Omit<T, K>>` 형태로 원래의 객체와, 각각 분배된 K를 키로 갖지 않는 나머지 객체를 유니언으로 합치고 이를 재귀를 진행하여 단일 키를 갖는 객체들까지 생성하여 반환함
+
 ## [Medium-35045-LongestCommonPrefix](./medium/35045-longest-common-prefix.ts)
 
 ## [Medium-35191-Trace](./medium/35191-trace.ts)
