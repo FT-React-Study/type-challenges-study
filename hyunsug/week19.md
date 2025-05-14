@@ -92,9 +92,37 @@ type DefinedPartial<T, K extends keyof T = keyof T> = K extends any
 - `T`에 타입 제한을 걸지는 않았지만 `Record<string, any>`의 형태를 받게 됨
 - `K`를 `keyof T`로 제한하고 `keyof T`로 초기화함
 - `K extends any` (or `unknown` 등등)을 통해 K를 분배함
-- `T | DefinedPartial<Omit<T, K>>` 형태로 원래의 객체와, 각각 분배된 K를 키로 갖지 않는 나머지 객체를 유니언으로 합치고 이를 재귀를 진행하여 단일 키를 갖는 객체들까지 생성하여 반환함
+- `T | DefinedPartial<Omit<T, K>>` 형태로 원래의 객체와, 각각 분배된 K를 키로 갖지 않는 나머지 객체를 유니언으로 합치고 이를 재귀를 진행하여 단일 키를 갖는 객체들까지 생성하여 반환함In
 
 ## [Medium-35045-LongestCommonPrefix](./medium/35045-longest-common-prefix.ts)
+
+```ts
+type CommonPrefix<
+  A extends string,
+  B extends string
+> = A extends `${infer F}${infer RestOfA}`
+  ? B extends `${F}${infer RestOfB}`
+    ? `${F}${CommonPrefix<RestOfA, RestOfB>}`
+    : ""
+  : "";
+
+type LongestCommonPrefix<T extends string[]> = T extends [
+  infer A extends string,
+  infer B extends string,
+  ...infer Rest extends string[]
+]
+  ? LongestCommonPrefix<[CommonPrefix<A, B>, ...Rest]>
+  : T extends [infer Only extends string]
+  ? Only
+  : "";
+```
+
+- 문자열 튜플 T에서 공통 prefix를 찾는 문제
+- `CommonPrefix<A, B>`는 A와 B의 공통 prefix를 찾는 형태로, A에서 F를 떼어내고, B가 F로 시작하는 패턴매칭에 부합하는 경우
+  F로 시작하는 문자열에 이어서 A와 B의 남은 문자열을 다시 CommonPrefix로 재귀를 진행하여 최종적으로 prefix를 반환
+- 이 헬퍼 타입을 이용하여 Tuple T의 첫 두 요소로부터 공통 prefix를 찾고, 이 prefix와 다음 원소를 비교하는 식으로 재귀를 진행
+- 마지막에 `[infer Only extends string]` 형태로, 마지막 남은 원소 (최종적인 Prefix)를 반환하거나
+- 빈 문자열을 반환하는 형태로 종료
 
 ## [Medium-35191-Trace](./medium/35191-trace.ts)
 
